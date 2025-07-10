@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "laakhay-quantlab"
+version = "0.1.0"
+description = "Quantitative analysis tools for the Laakhay ecosystem"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Sashank Neupane", email = "sashank@example.com"}
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.6"
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/laakhay/quantlab"
+Repository = "https://github.com/laakhay/quantlab" 
