@@ -1,10 +1,14 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = [
+  "setuptools>=61.0",
+  "wheel",
+  "setuptools_scm[toml]>=6.0"
+]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "laakhay-quantlab"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Quantitative analysis tools for the Laakhay ecosystem"
 readme = "README.md"
 license = {text = "MIT"}
@@ -20,5 +24,10 @@ requires-python = ">=3.6"
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/laakhay/quantlab"
-Repository = "https://github.com/laakhay/quantlab" 
+Homepage = "https://github.com/sashankneupane/laakhay"
+Repository = "https://github.com/sashankneupane/laakhay"
+
+[tool.setuptools_scm]
+write_to       = "laakhay/quantlab/_version.py"
+version_scheme = "post-release"
+local_scheme   = "no-local-version" 
