@@ -9,11 +9,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "laakhay-quantlab"
 dynamic = ["version"]
-description = "Quantitative analysis tools for the Laakhay ecosystem"
+description = "Quant tools built with ♥︎ by Laakhay"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "Sashank Neupane", email = "sashank@example.com"}
+    {name = "Laakhay Corporation", email = "laakhay.corp@gmail.com"}
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -24,10 +24,10 @@ requires-python = ">=3.6"
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/sashankneupane/laakhay"
-Repository = "https://github.com/sashankneupane/laakhay"
+Homepage = "https://laakhay.com"
+Repository = "https://github.com/laakhay/quantlab"
 
 [tool.setuptools_scm]
 write_to       = "laakhay/quantlab/_version.py"
 version_scheme = "post-release"
-local_scheme   = "no-local-version" 
+local_scheme   = "no-local-version"
