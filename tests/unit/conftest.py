@@ -2,7 +2,7 @@
 
 import pytest
 
-from laakhay.quantlab.backend import get_backend, has_backend, list_backends
+from laakhay.quantlab.backend import get_backend, has_backend
 
 
 @pytest.fixture(params=["numpy", "jax", "torch"])
@@ -11,13 +11,13 @@ def backend(request):
     backend_name = request.param
     if not has_backend(backend_name):
         pytest.skip(f"{backend_name} backend not available")
-    
+
     backend = get_backend(backend_name)
-    
+
     # Skip if backend is fallback (not a real implementation)
     if hasattr(backend, "_is_fallback") or backend.name == "fallback":
         pytest.skip(f"{backend_name} backend not properly installed")
-    
+
     return backend
 
 
@@ -53,6 +53,7 @@ def jax_key(jax_backend):
     else:
         # Fallback for when random_key is not implemented
         import jax
+
         return jax.random.PRNGKey(42)
 
 
@@ -74,11 +75,13 @@ def gaussian_params(request):
     return request.param
 
 
-@pytest.fixture(params=[
-    (100.0, 0.05, 0.2, 1.0, 252),  # Standard equity parameters
-    (1.0, 0.0, 0.3, 0.5, 100),     # FX-like parameters
-    (50.0, 0.1, 0.4, 2.0, 504),    # High volatility, longer maturity
-])
+@pytest.fixture(
+    params=[
+        (100.0, 0.05, 0.2, 1.0, 252),  # Standard equity parameters
+        (1.0, 0.0, 0.3, 0.5, 100),  # FX-like parameters
+        (50.0, 0.1, 0.4, 2.0, 504),  # High volatility, longer maturity
+    ]
+)
 def gbm_params(request):
     """Fixture providing different GBM parameters."""
     spot, drift, volatility, time_to_maturity, num_steps = request.param

@@ -1,10 +1,6 @@
 """Tests for types module."""
 
-import pytest
-
-from laakhay.quantlab.types.base import (
-    Scalar, Shape, ArrayLike, Array
-)
+from laakhay.quantlab.types.base import Array
 
 
 class TestTypes:
@@ -15,8 +11,8 @@ class TestTypes:
         # Test with different scalar types
         scalars = [1, 1.0, 2.5, -3.14, 0]
         for s in scalars:
-            assert isinstance(s, (int, float))
-            
+            assert isinstance(s, (int, float))  # noqa: UP038
+
     def test_shape_type(self):
         """Test Shape type."""
         # Test various shape tuples
@@ -24,22 +20,16 @@ class TestTypes:
         for shape in shapes:
             assert isinstance(shape, tuple)
             assert all(isinstance(dim, int) for dim in shape)
-            
+
     def test_array_type(self):
         """Test Array type usage."""
         # Array is set to any at runtime
         assert Array is any
-            
+
     def test_array_like(self):
         """Test ArrayLike type."""
         # Various array-like objects
-        array_likes = [
-            [1, 2, 3],
-            [[1, 2], [3, 4]],
-            (1, 2, 3),
-            1.0,
-            [1.0, 2.0, 3.0]
-        ]
+        array_likes = [[1, 2, 3], [[1, 2], [3, 4]], (1, 2, 3), 1.0, [1.0, 2.0, 3.0]]
         for arr in array_likes:
             # ArrayLike should accept lists, tuples, scalars
             assert arr is not None

@@ -226,19 +226,19 @@ class NumpyBackend(AbstractBackend):
 
     def to_device(self, array: Array, device: any) -> Array:
         return array
-    
+
     def gather(self, a: Array, indices: Array, axis: int = 0) -> Array:
         return np.take(a, indices, axis=axis)
-    
+
     def norm(self, a: Array, ord: any = None, axis: Axis = None) -> Array:
         return np.linalg.norm(a, ord=ord, axis=axis)
-    
+
     def solve(self, a: Array, b: Array) -> Array:
         return np.linalg.solve(a, b)
-    
+
     def inv(self, a: Array) -> Array:
         return np.linalg.inv(a)
-    
+
     def det(self, a: Array) -> Array:
         return np.linalg.det(a)
 
@@ -307,9 +307,9 @@ class NumpyBackend(AbstractBackend):
         return seed
 
     def random_normal(
-        self, 
-        key: any, 
-        shape: Shape, 
+        self,
+        key: any,
+        shape: Shape,
         dtype: any = None,
         device: any = None,
     ) -> Array:
@@ -319,13 +319,13 @@ class NumpyBackend(AbstractBackend):
         return result
 
     def random_uniform(
-        self, 
-        key: any, 
-        shape: Shape, 
+        self,
+        key: any,
+        shape: Shape,
         dtype: any = None,
         device: any = None,
-        low: float = 0.0, 
-        high: float = 1.0
+        low: float = 0.0,
+        high: float = 1.0,
     ) -> Array:
         result = np.random.uniform(low, high, shape)
         if dtype is not None:
