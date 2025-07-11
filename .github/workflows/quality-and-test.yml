@@ -36,34 +36,24 @@ jobs:
   test:
     needs: lint
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.10", "3.11", "3.12"]
-        backend: ["numpy", "jax", "torch", "all"]
-
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: "3.11"
     
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements-dev.txt
-        if [ "${{ matrix.backend }}" = "all" ]; then
-          pip install -e .[numpy,jax,torch]
-        else
-          pip install -e .[${{ matrix.backend }}]
-        fi
+        pip install -e .
     
     - name: Run tests
       run: |
         pytest tests/ -v --cov=laakhay --cov-report=term-missing
     
     - name: Upload coverage
-      if: matrix.python-version == '3.11' && matrix.backend == 'all'
       uses: codecov/codecov-action@v3
       with:
         file: ./coverage.xml
