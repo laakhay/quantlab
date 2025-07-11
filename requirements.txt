@@ -1,0 +1,14 @@
+# Core dependencies for laakhay-quantlab
+# These are the minimal runtime requirements
+
+# Optional array backends (install at least one)
+# numpy>=1.21.0
+# jax[cpu]>=0.4.0  # For CPU-only JAX
+# jax[cuda]>=0.4.0  # For GPU-enabled JAX  
+# torch>=2.0.0      # For PyTorch backend
+
+# Note: At least one backend (numpy, jax, or torch) must be installed
+# for the library to function. Install the backend(s) that match your needs:
+# - numpy: Simple CPU-only computations, no autodiff
+# - jax: GPU support, autodiff, JIT compilation
+# - torch: GPU support, autodiff
