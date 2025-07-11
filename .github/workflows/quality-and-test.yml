@@ -1,0 +1,83 @@
+name: Code Quality and Tests
+
+on:
+  push:
+    branches: [ '**' ]
+  pull_request:
+    branches: [ main ]
+    types: [ opened, synchronize, reopened ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install ruff black isort mypy
+    
+    - name: Run linting
+      run: |
+        ruff check laakhay/ tests/
+        black --check laakhay/ tests/
+        isort --check-only laakhay/ tests/
+    
+    - name: Run type checking
+      run: |
+        pip install numpy
+        mypy laakhay/
+
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+        backend: ["numpy", "jax", "torch", "all"]
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ "${{ matrix.backend }}" = "all" ]; then
+          pip install -e .[numpy,jax,torch]
+        else
+          pip install -e .[${{ matrix.backend }}]
+        fi
+        pip install -e .[dev]
+    
+    - name: Run tests
+      run: |
+        pytest tests/ -v --cov=laakhay --cov-report=term-missing
+    
+    - name: Upload coverage
+      if: matrix.python-version == '3.11' && matrix.backend == 'all'
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        fail_ci_if_error: false
+
+  all-checks:
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check if all jobs passed
+        run: |
+          if [ "${{ needs.lint.result }}" != "success" ] || [ "${{ needs.test.result }}" != "success" ]; then
+            echo "One or more jobs failed"
+            exit 1
+          fi
+          echo "All checks passed!"
