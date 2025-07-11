@@ -3,9 +3,9 @@ venv/
 
 *.egg-info/
 
-**/_pycache_/
+**/__pycache__/
 **/.DS_Store
 
 .env*
 
-dist/
+dist/__pycache__/
