@@ -25,6 +25,9 @@ class Device:
     def __hash__(self):
         return hash((self.type, self.id))
 
+    def __repr__(self):
+        return f"Device({self})"
+
     @classmethod
     def cpu(cls):
         """CPU device."""

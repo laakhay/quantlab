@@ -29,3 +29,19 @@ class FallbackBackend(AbstractBackend):
         ):
             return object.__getattribute__(self, name)
         return object.__getattribute__(self, "_not_available")
+
+    # Add explicit methods to satisfy the protocol
+    def gather(self, a, indices, axis=0):
+        return self._not_available()
+
+    def norm(self, a, ord=None, axis=None):
+        return self._not_available()
+
+    def solve(self, a, b):
+        return self._not_available()
+
+    def inv(self, a):
+        return self._not_available()
+
+    def det(self, a):
+        return self._not_available()

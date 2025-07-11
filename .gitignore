@@ -14,3 +14,5 @@ venv/
 .coverage*
 
 quantlab/_version.py
+
+htmlcov/

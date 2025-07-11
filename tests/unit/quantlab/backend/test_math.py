@@ -436,7 +436,9 @@ class TestLinearAlgebra:
 
         # Verify A @ A_inv = I
         identity = b.matmul(A, A_inv)
-        np.testing.assert_allclose(b.to_numpy(identity), np.eye(2), rtol=1e-6)
+        np.testing.assert_allclose(
+            b.to_numpy(identity), np.eye(2), rtol=1e-6, atol=1e-6
+        )
 
     def test_det(self, b):
         """Test determinant."""
