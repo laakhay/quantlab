@@ -11,5 +11,6 @@ venv/
 .claude/
 .pytest_cache/
 .ruff_cache/
+.coverage*
 
 quantlab/_version.py
