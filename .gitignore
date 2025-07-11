@@ -7,5 +7,3 @@ venv/
 **/.DS_Store
 
 .env*
-
-dist/__pycache__/
