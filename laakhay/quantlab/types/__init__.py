@@ -1,16 +1,37 @@
 """Centralized type definitions for laakhay-quantlab."""
 
-from .base import (
-    Shape, Axis, Array, ArrayLike,
-    NumpyNDArray, TorchTensor, JaxArray, Scalar
-)
-
 from .backend import (
-    BackendName, ArrayFunction, GradFunction, UnaryOp, BinaryOp, BackendProtocol
+    ArrayFunction,
+    BackendName,
+    BackendProtocol,
+    BinaryOp,
+    GradFunction,
+    UnaryOp,
+)
+from .base import (
+    Array,
+    ArrayLike,
+    Axis,
+    JaxArray,
+    NumpyNDArray,
+    Scalar,
+    Shape,
+    TorchTensor,
 )
 
 __all__ = [
-    'Shape', 'Axis', 'Array', 'ArrayLike', 'Scalar',
-    'NumpyNDArray', 'TorchTensor', 'JaxArray',
-    'BackendName', 'ArrayFunction', 'GradFunction', 'UnaryOp', 'BinaryOp', 'BackendProtocol'
+    "Shape",
+    "Axis",
+    "Array",
+    "ArrayLike",
+    "Scalar",
+    "NumpyNDArray",
+    "TorchTensor",
+    "JaxArray",
+    "BackendName",
+    "ArrayFunction",
+    "GradFunction",
+    "UnaryOp",
+    "BinaryOp",
+    "BackendProtocol",
 ]

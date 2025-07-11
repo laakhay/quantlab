@@ -1,14 +1,13 @@
 """Fallback backend for when no array libraries are installed."""
 
-from ...types import Array, Shape, Axis
 from ..interface import AbstractBackend
 
 
 class FallbackBackend(AbstractBackend):
     """Fallback backend that raises helpful errors."""
-    
+
     name = "fallback"
-    
+
     def __init__(self):
         self._error_msg = (
             "No array backend available. Install one of:\n"
@@ -16,11 +15,17 @@ class FallbackBackend(AbstractBackend):
             "  pip install jax jaxlib\n"
             "  pip install torch"
         )
-    
+
     def _not_available(self, *args, **kwargs):
         raise RuntimeError(self._error_msg)
-    
+
     def __getattribute__(self, name):
-        if name in ('name', '_error_msg', '_not_available', '__class__', '__init__'):
+        if name in (
+            "name",
+            "_error_msg",
+            "_not_available",
+            "__class__",
+            "__init__",
+        ):
             return object.__getattribute__(self, name)
-        return object.__getattribute__(self, '_not_available')
+        return object.__getattribute__(self, "_not_available")

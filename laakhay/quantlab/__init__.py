@@ -9,7 +9,9 @@ except ImportError:
 
 __author__ = "Laakhay Corporation"
 
+
 def hello():
     print("Hello from Laakhay Quantlab!")
 
-__all__ = ['hello']
+
+__all__ = ["hello"]
