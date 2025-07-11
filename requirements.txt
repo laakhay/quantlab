@@ -3,6 +3,7 @@
 
 # Optional array backends (install at least one)
 # numpy>=1.21.0
+# scipy>=1.7.0      # Required for statistical functions with numpy backend
 # jax[cpu]>=0.4.0  # For CPU-only JAX
 # jax[cuda]>=0.4.0  # For GPU-enabled JAX  
 # torch>=2.0.0      # For PyTorch backend

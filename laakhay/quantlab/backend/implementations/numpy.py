@@ -226,3 +226,111 @@ class NumpyBackend(AbstractBackend):
 
     def to_device(self, array: Array, device: any) -> Array:
         return array
+    
+    def gather(self, a: Array, indices: Array, axis: int = 0) -> Array:
+        return np.take(a, indices, axis=axis)
+    
+    def norm(self, a: Array, ord: any = None, axis: Axis = None) -> Array:
+        return np.linalg.norm(a, ord=ord, axis=axis)
+    
+    def solve(self, a: Array, b: Array) -> Array:
+        return np.linalg.solve(a, b)
+    
+    def inv(self, a: Array) -> Array:
+        return np.linalg.inv(a)
+    
+    def det(self, a: Array) -> Array:
+        return np.linalg.det(a)
+
+    def erf(self, x: Array) -> Array:
+        try:
+            from scipy.special import erf
+
+            return erf(x)
+        except ImportError:
+            import numpy as _np
+
+            a1 = 0.254829592
+            a2 = -0.284496736
+            a3 = 1.421413741
+            a4 = -1.453152027
+            a5 = 1.061405429
+            p = 0.3275911
+            sign = _np.sign(x)
+            x = _np.abs(x)
+            t = 1.0 / (1.0 + p * x)
+            y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * _np.exp(
+                -x * x
+            )
+            return sign * y
+
+    def erfc(self, x: Array) -> Array:
+        from scipy.special import erfc
+
+        return erfc(x)
+
+    def norm_cdf(self, x: Array) -> Array:
+        try:
+            from scipy.stats import norm
+
+            return norm.cdf(x)
+        except ImportError:
+            return 0.5 * (1 + self.erf(x / np.sqrt(2)))
+
+    def norm_pdf(self, x: Array) -> Array:
+        from scipy.stats import norm
+
+        return norm.pdf(x)
+
+    def norm_ppf(self, q: Array) -> Array:
+        try:
+            from scipy.stats import norm
+
+            return norm.ppf(q)
+        except ImportError:
+            raise NotImplementedError(
+                "norm_ppf requires scipy for numpy backend"
+            ) from None
+
+    def gamma(self, x: Array) -> Array:
+        from scipy.special import gamma
+
+        return gamma(x)
+
+    def lgamma(self, x: Array) -> Array:
+        from scipy.special import gammaln
+
+        return gammaln(x)
+
+    def random_key(self, seed: int) -> any:
+        np.random.seed(seed)
+        return seed
+
+    def random_normal(
+        self, 
+        key: any, 
+        shape: Shape, 
+        dtype: any = None,
+        device: any = None,
+    ) -> Array:
+        result = np.random.normal(0.0, 1.0, shape)
+        if dtype is not None:
+            result = result.astype(dtype)
+        return result
+
+    def random_uniform(
+        self, 
+        key: any, 
+        shape: Shape, 
+        dtype: any = None,
+        device: any = None,
+        low: float = 0.0, 
+        high: float = 1.0
+    ) -> Array:
+        result = np.random.uniform(low, high, shape)
+        if dtype is not None:
+            result = result.astype(dtype)
+        return result
+
+    def random_split(self, key: any, num: int = 2) -> list[any]:
+        return [key + i for i in range(num)]

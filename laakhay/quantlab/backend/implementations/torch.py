@@ -264,3 +264,103 @@ class TorchBackend(AbstractBackend):
 
     def to_device(self, array: Array, device: any) -> Array:
         return array.to(str(device))
+    
+    def gather(self, a: Array, indices: Array, axis: int = 0) -> Array:
+        # PyTorch gather requires indices to have same number of dimensions as input
+        # For numpy compatibility, we use index_select when indices is 1D
+        if indices.ndim == 1:
+            return torch.index_select(a, dim=axis, index=indices)
+        else:
+            # For multi-dimensional indices, ensure they match input dimensions
+            if a.ndim != indices.ndim:
+                raise ValueError(f"Indices must have same number of dimensions as input. "
+                                 f"Got {indices.ndim} vs {a.ndim}")
+            return torch.gather(a, axis, indices)
+    
+    def norm(self, a: Array, ord: any = None, axis: Axis = None) -> Array:
+        # Ensure float type for norm computation
+        if a.dtype in (torch.int32, torch.int64, torch.long):
+            a = a.float()
+        
+        if axis is None and ord is None:
+            # Frobenius norm for matrices, 2-norm for vectors
+            return torch.linalg.norm(a)
+        elif axis is not None:
+            return torch.linalg.norm(a, ord=ord, dim=axis)
+        else:
+            return torch.linalg.norm(a, ord=ord)
+    
+    def solve(self, a: Array, b: Array) -> Array:
+        return torch.linalg.solve(a, b)
+    
+    def inv(self, a: Array) -> Array:
+        return torch.linalg.inv(a)
+    
+    def det(self, a: Array) -> Array:
+        return torch.linalg.det(a)
+
+    def erf(self, x: Array) -> Array:
+        return torch.erf(x)
+
+    def erfc(self, x: Array) -> Array:
+        return torch.erfc(x)
+
+    def norm_cdf(self, x: Array) -> Array:
+        return 0.5 * (1 + torch.erf(x / torch.sqrt(torch.tensor(2.0))))
+
+    def norm_pdf(self, x: Array) -> Array:
+        return torch.exp(-0.5 * x * x) / torch.sqrt(2 * torch.tensor(torch.pi))
+
+    def norm_ppf(self, q: Array) -> Array:
+        return torch.sqrt(torch.tensor(2.0)) * torch.erfinv(2 * q - 1)
+
+    def gamma(self, x: Array) -> Array:
+        return torch.lgamma(x).exp()
+
+    def lgamma(self, x: Array) -> Array:
+        return torch.lgamma(x)
+
+    def random_key(self, seed: int) -> any:
+        torch.manual_seed(seed)
+        return seed
+
+    def random_normal(
+        self, 
+        key: any, 
+        shape: Shape, 
+        dtype: any = None,
+        device: any = None,
+    ) -> Array:
+        kwargs = {}
+        if dtype is not None:
+            kwargs['dtype'] = dtype
+        if device is not None:
+            # Convert our Device object to torch device
+            if hasattr(device, 'type'):
+                kwargs['device'] = torch.device(str(device))
+            else:
+                kwargs['device'] = device
+        return torch.randn(shape, **kwargs)
+
+    def random_uniform(
+        self, 
+        key: any, 
+        shape: Shape, 
+        dtype: any = None,
+        device: any = None,
+        low: float = 0.0, 
+        high: float = 1.0
+    ) -> Array:
+        kwargs = {}
+        if dtype is not None:
+            kwargs['dtype'] = dtype
+        if device is not None:
+            # Convert our Device object to torch device
+            if hasattr(device, 'type'):
+                kwargs['device'] = torch.device(str(device))
+            else:
+                kwargs['device'] = device
+        return torch.rand(shape, **kwargs) * (high - low) + low
+
+    def random_split(self, key: any, num: int = 2) -> list[any]:
+        return [key + i for i in range(num)]
