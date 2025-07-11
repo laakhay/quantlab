@@ -6,6 +6,7 @@ pytest>=7.4.0
 pytest-cov>=4.1.0
 pytest-xdist>=3.3.0  # Parallel test execution
 hypothesis>=6.0.0    # Property-based testing
+urllib3>=1.26.0      # Transitive dependency for pytest-cov
 
 # Code quality
 ruff>=0.1.0         # Fast Python linter
