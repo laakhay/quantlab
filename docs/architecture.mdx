@@ -1,0 +1,25 @@
+# Architecture Direction
+
+This direction is aligned with shared system docs in `laakhay-dev/docs` and package boundaries.
+
+## Layering
+
+1. Data acquisition and normalization via `laakhay-data`
+2. Signal/feature logic via `laakhay-ta`
+3. Research orchestration and experiment state in `quantlab`
+4. Promotion of validated logic into runtime services
+
+## Key Design Constraints
+
+- deterministic experiment replay
+- explicit versioning of inputs and parameter sets
+- serializable research artifacts for review
+- clear handoff from research to deployment pipeline
+
+## Interface Contracts
+
+Quantlab should consume stable contracts, not private internals, from sibling packages:
+
+- documented API surfaces
+- pinned package versions
+- compatibility checks in CI

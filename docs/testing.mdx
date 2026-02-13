@@ -1,0 +1,28 @@
+# Testing and Readiness
+
+This page is informed by shared readiness/test strategy docs in `laakhay-dev/docs`.
+
+## Testing Layers Relevant to Quantlab
+
+- static checks (lint/type/security)
+- unit tests for pure research transforms
+- integration tests with real data contracts
+- replay/e2e scenarios for experiment determinism
+
+## Minimum Bar Before Promotion
+
+A research artifact should not move forward unless:
+
+- tests are deterministic
+- assumptions and constraints are documented
+- dependency versions are pinned
+- compatibility with downstream runtime contracts is validated
+
+## Operational Readiness Hooks
+
+From production readiness guidance:
+
+- CI gates for regressions
+- artifact versioning
+- observability hooks when promoted to service runtime
+- rollback path when real-time behavior diverges from replay

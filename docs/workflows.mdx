@@ -1,0 +1,36 @@
+# Research Workflows
+
+A practical baseline workflow for Quantlab teams:
+
+## 1. Define Hypothesis
+
+State a measurable claim (signal quality, risk profile, stability under regime shifts).
+
+## 2. Define Inputs
+
+- universe and symbol scope
+- timeframe and data sources
+- warmup/lookback requirements
+
+## 3. Build Signal Logic
+
+Compose indicator and expression logic with explicit parameter sets.
+
+## 4. Run Evaluation
+
+- offline replay on bounded windows
+- stress windows for volatility and liquidity shifts
+- sanity checks for missing-data behavior
+
+## 5. Record Outcomes
+
+Persist:
+
+- strategy/feature definition
+- dataset fingerprint
+- metrics and failure modes
+- decision (iterate, reject, promote)
+
+## 6. Promote or Iterate
+
+Only promote artifacts with reproducible results and stable behavior.
