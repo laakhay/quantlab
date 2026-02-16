@@ -1,0 +1,23 @@
+# Backend Selection
+
+## Recommended Strategy
+
+- Select backend explicitly at service boundaries.
+- Keep tensors from one backend per compute graph.
+- Convert only at explicit adapter boundaries.
+
+## Example
+
+```python
+from laakhay.quantlab.backend import get_backend, convert_array
+
+npb = get_backend('numpy')
+tb = get_backend('torch')
+
+x_np = npb.array([1.0, 2.0, 3.0])
+x_torch = convert_array(x_np, to_backend='torch', from_backend='numpy')
+```
+
+## Anti-Pattern
+
+Passing mixed backend arrays to a single op chain triggers `MixedBackendError`.

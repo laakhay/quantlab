@@ -1,0 +1,39 @@
+# Simulation API
+
+## `GaussianSampler`
+
+Primary methods:
+
+- `sample(shape, backend=None, key=None, standardize=False)`
+- `pdf(x, backend=None, standardize=False)`
+- `cdf(x, backend=None, standardize=False)`
+- `ppf(q, backend=None, standardize=False)`
+
+Properties and helpers:
+
+- `mean`, `std`, `variance`
+- `skew`, `ex_kurtosis`
+- `mgf(t, backend=None)`
+
+## `GeometricBrownianMotion`
+
+Constructor inputs:
+
+- `spot`, `drift`, `volatility`, `time_to_maturity`, `num_steps`, `sampler=None`
+
+Core methods:
+
+- `generate_shocks`
+- `build_unit_paths`
+- `build_log_paths`
+- `scale_to_spot`
+- `add_drift`
+- `generate_paths`
+- `terminal_values`
+
+Validation rules:
+
+- positive `spot`
+- non-negative `volatility`
+- positive `time_to_maturity` and `num_steps`
+- antithetic mode requires even `num_paths`

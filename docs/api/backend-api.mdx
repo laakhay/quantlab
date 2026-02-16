@@ -1,0 +1,36 @@
+# Backend API
+
+## Top-Level Functions
+
+From `laakhay.quantlab.backend`:
+
+- `backend(name=None) -> ArrayBackend`
+- `active_backend() -> ArrayBackend`
+- `register(name, backend)`
+- `get_backend(name=None)`
+- `set_default(name)`
+- `list_backends()`
+- `has_backend(name)`
+- `infer_backend(array)`
+- `infer_backend_from_arrays(*arrays)`
+- `convert_array(array, to_backend, from_backend=None)`
+
+## `ArrayBackend`
+
+`ArrayBackend` wraps a concrete backend instance and exposes:
+
+- delegated backend methods
+- `supports_autodiff` for capability checks
+- acceleration helpers: `grad`, `value_and_grad`, `vmap`, `jit`
+- `from_array(array)` for inferred wrapper construction
+
+## Example
+
+```python
+from laakhay.quantlab.backend import backend
+
+b = backend('numpy')
+x = b.linspace(0.0, 1.0, 100)
+y = b.exp(x)
+z = b.mean(y)
+```

@@ -1,0 +1,35 @@
+# Autodiff, JIT, VMAP
+
+`ArrayBackend` exposes backend-aware acceleration wrappers.
+
+## Gradient
+
+```python
+from laakhay.quantlab.backend import backend
+
+b = backend('jax')
+
+def loss(x):
+    return (x * x).sum()
+
+grad_fn = b.grad(loss)
+```
+
+## Value + Gradient
+
+```python
+value_and_grad = b.value_and_grad(loss)
+value, grad = value_and_grad(b.array([1.0, 2.0, 3.0]))
+```
+
+## JIT / VMAP
+
+```python
+fast_loss = b.jit(loss)
+batched_square = b.vmap(lambda x: x * x)
+```
+
+Behavior caveat:
+
+- `jit` is effectively pass-through on non-JAX backends.
+- non-JAX `vmap` falls back to Python mapping + stack.

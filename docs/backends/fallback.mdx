@@ -1,0 +1,11 @@
+# Fallback Backend
+
+`FallbackBackend` is a fail-fast guard used when no real backend is installed.
+
+Behavior:
+
+- always registered
+- resolves method access to a runtime error with installation guidance
+- not suitable for computation
+
+If fallback is your default backend, install at least one real backend extra (`numpy`, `jax`, or `torch`).

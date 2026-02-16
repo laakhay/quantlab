@@ -1,0 +1,45 @@
+# Quickstart
+
+## 1. Backend + Ops
+
+```python
+from laakhay.quantlab.backend import backend
+from laakhay.quantlab.backend.ops import mean, std
+
+b = backend('numpy')
+x = b.random_normal(key=42, shape=(1000,))
+print(float(b.to_numpy(mean(x))), float(b.to_numpy(std(x))))
+```
+
+## 2. Gaussian Sampler + GBM Paths
+
+```python
+from laakhay.quantlab.backend import backend
+from laakhay.quantlab.simulations import GaussianSampler, GeometricBrownianMotion
+
+b = backend('numpy')
+sampler = GaussianSampler(mean=0.0, std=1.0)
+
+gbm = GeometricBrownianMotion(
+    spot=100.0,
+    drift=0.05,
+    volatility=0.2,
+    time_to_maturity=1.0,
+    num_steps=252,
+    sampler=sampler,
+)
+
+paths = gbm.generate_paths(num_paths=1000, backend=b)
+terminal = gbm.terminal_values(num_paths=1000, backend=b)
+print('paths:', b.shape(paths), 'terminal:', b.shape(terminal))
+```
+
+## 3. JAX Note
+
+For JAX-backed sampling/simulation, pass keys explicitly:
+
+```python
+b = backend('jax')
+key = b.random_key(42)
+paths = gbm.generate_paths(num_paths=1024, backend=b, key=key)
+```

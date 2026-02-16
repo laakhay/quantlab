@@ -1,0 +1,32 @@
+# Monte Carlo GBM
+
+## Basic Path Simulation
+
+```python
+from laakhay.quantlab.backend import backend
+from laakhay.quantlab.simulations import GeometricBrownianMotion
+
+b = backend('numpy')
+gbm = GeometricBrownianMotion(100.0, 0.05, 0.2, 1.0, 252)
+
+paths = gbm.generate_paths(num_paths=10000, backend=b)
+terminal = gbm.terminal_values(num_paths=10000, backend=b)
+```
+
+## Variance Reduction
+
+```python
+terminal_anti = gbm.terminal_values(
+    num_paths=10000,
+    backend=b,
+    antithetic=True,
+)
+```
+
+Use even `num_paths` for antithetic mode.
+
+## Production Notes
+
+- Calibrate `drift` and `volatility` from your data/TA stack.
+- Keep reproducibility by controlling random keys/seeds.
+- Convert outputs once at boundaries (e.g., charting/report pipelines).

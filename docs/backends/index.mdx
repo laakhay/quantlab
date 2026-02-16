@@ -1,0 +1,18 @@
+# Backend Selection
+
+Quantlab supports these backend options:
+
+- `NumpyBackend`
+- `JaxBackend` (optional)
+- `TorchBackend` (optional)
+- `FallbackBackend` (safety fallback only)
+
+## How Default Backend Is Chosen
+
+At initialization, Quantlab picks the first available real backend (`numpy`, `jax`, `torch`), otherwise fallback.
+
+## Practical Guidance
+
+- Use `numpy` for baseline portability.
+- Use `jax` for autodiff/JIT/vectorized-heavy workloads.
+- Use `torch` when integrating with torch-native pipelines.

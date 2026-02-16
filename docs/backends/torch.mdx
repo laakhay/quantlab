@@ -1,0 +1,14 @@
+# PyTorch Backend
+
+`TorchBackend` maps backend protocol methods to `torch` and `torch.linalg`.
+
+Highlights:
+
+- CPU and CUDA device support
+- tensor-first workflow for model-adjacent quant systems
+- backend-compatible random, linalg, and special function support
+
+Operational notes:
+
+- device movement is explicit through `to_device`
+- backend conversion to/from NumPy is available for bridge workflows

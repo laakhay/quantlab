@@ -1,0 +1,22 @@
+# Types & Exceptions
+
+## Types
+
+`laakhay.quantlab.types` exports shared aliases used across backends and simulations:
+
+- core: `Array`, `ArrayLike`, `Scalar`, `Shape`, `Axis`
+- backend-related: `BackendName`, `ArrayFunction`, `GradFunction`, `UnaryOp`, `BinaryOp`, `BackendProtocol`
+- framework aliases: `NumpyNDArray`, `TorchTensor`, `JaxArray`
+
+These are primarily for static typing and interface consistency.
+
+## Exceptions
+
+`laakhay.quantlab.exceptions` defines:
+
+- `BackendError`
+- `MixedBackendError`
+- `BackendNotFoundError`
+- `GuidelineError`
+
+Handle these at orchestration boundaries where backend selection/inference occurs.

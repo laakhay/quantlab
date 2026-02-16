@@ -1,0 +1,15 @@
+# JAX Backend
+
+`JaxBackend` provides JAX-native array and math semantics.
+
+Highlights:
+
+- `jax.numpy` operations
+- JAX PRNG key workflow (`random_key`, `random_split`)
+- `jax.scipy` special/statistical helpers
+- best pairing with `ArrayBackend.grad`, `jit`, and `vmap`
+
+Operational notes:
+
+- pass explicit keys for reproducible sampling
+- be mindful of JAX tracing/shape constraints in jitted functions

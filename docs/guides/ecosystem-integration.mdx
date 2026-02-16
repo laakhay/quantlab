@@ -1,0 +1,22 @@
+# Ecosystem Integration
+
+## Typical Data Flow
+
+1. Use `laakhay-data` to fetch and normalize market data.
+2. Use `laakhay-ta` to derive indicators/signals/features.
+3. Use `laakhay-quantlab` to run simulation, stress, or distribution-based analytics.
+
+## Example Workflow
+
+- pull OHLCV/trade snapshots with `data`
+- compute features (volatility regime, momentum spread) with `ta`
+- map those features into GBM parameter sets in `quantlab`
+- simulate PnL/risk scenarios and summarize distributions
+
+## Why This Split Works
+
+- `data` owns ingestion and exchange semantics
+- `ta` owns deterministic feature/indicator logic
+- `quantlab` owns backend-accelerated stochastic compute
+
+This keeps each library focused and easier to test independently.

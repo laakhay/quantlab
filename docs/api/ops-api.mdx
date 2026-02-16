@@ -1,0 +1,24 @@
+# Ops API
+
+`laakhay.quantlab.backend.ops` is a convenience facade over inferred backend dispatch.
+
+Use it when you want concise operator calls without manually carrying an `ArrayBackend` object.
+
+## Example
+
+```python
+from laakhay.quantlab.backend.ops import add, mul, mean, std
+
+z = add(x, y)
+w = mul(z, z)
+mu = mean(w)
+sigma = std(w)
+```
+
+## Notes
+
+- All arrays in one operation path should belong to the same backend.
+- Mixed-backend arrays raise `MixedBackendError` from registry inference.
+- For explicit control, prefer direct `ArrayBackend` methods.
+
+For full ops method list, see `api/inventory`.

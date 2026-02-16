@@ -1,20 +1,34 @@
-# Introduction
+# Laakhay Quantlab
 
-`laakhay-quantlab` is the research and experimentation surface in the Laakhay ecosystem.
+`laakhay-quantlab` is a backend-agnostic quantitative compute layer for simulation-heavy research and production analytics.
 
-While still in rapid development, its role is clear: convert ideas into testable workflows that can later be productionized in the broader stack.
+## At A Glance
 
-## What This Docs Site Covers
+- Unified backend protocol over NumPy, JAX, and PyTorch.
+- Runtime backend registry, inference, and array conversion.
+- Compact ops facade for backend-dispatched math and reductions.
+- Autodiff/JIT/vectorization helpers via `ArrayBackend`.
+- Simulation primitives: Gaussian sampler and Geometric Brownian Motion (GBM).
 
-- project purpose and boundaries
-- architecture direction and interfaces
-- practical research workflows
-- testing and production-readiness expectations
+## Ecosystem Position
 
-## Read First
+- `laakhay-data`: market data acquisition and normalization.
+- `laakhay-ta`: indicator and strategy expression engine.
+- `laakhay-quantlab`: numerical simulation and backend-accelerated quant compute.
 
-- [Overview](/overview)
-- [Architecture Direction](/architecture)
-- [Research Workflows](/workflows)
-- [Testing and Readiness](/testing)
-- [Documentation Status](/status)
+Typical flow: `data -> ta -> quantlab` for calibration, risk, and scenario simulation.
+
+## Package Info
+
+- Package: `laakhay-quantlab`
+- Python: `>=3.10`
+- Extras: `numpy`, `jax`, `jax-gpu`, `torch`, `all`
+
+## Docs Map
+
+- `getting-started`: install + first simulation run.
+- `guides`: practical integration and performance usage.
+- `api`: public interfaces and usage reference.
+- `backends`: choosing backend options for your workload.
+- `architecture`: high-level design concepts.
+- `testing`: test coverage and CI workflows.
