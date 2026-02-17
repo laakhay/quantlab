@@ -1,32 +1,35 @@
 [build-system]
 requires = [
-  "setuptools>=61.0",
-  "wheel",
-  "setuptools_scm[toml]>=6.0"
+    "hatchling>=1.18.0",
+    "hatch-vcs>=0.3.0",
 ]
-build-backend = "setuptools.build_meta"
+build-backend = "hatchling.build"
 
 [project]
 name = "laakhay-quantlab"
 dynamic = ["version"]
 description = "Quant tools built with ♥︎ by Laakhay"
 readme = "README.md"
-license = {text = "MIT"}
+requires-python = ">=3.12"
+license = "MIT"
 authors = [
     {name = "Laakhay Corporation", email = "laakhay.corp@gmail.com"}
 ]
+keywords = ["finance", "trading", "backtesting", "quantitative-analysis"]
 classifiers = [
     "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
     "Intended Audience :: Financial and Insurance Industry",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Office/Business :: Financial",
 ]
-requires-python = ">=3.10"
-dependencies = []
+
+# Runtime dependencies
+dependencies = [
+    "laakhay-data",
+    "laakhay-ta",
+]
 
 [project.optional-dependencies]
 numpy = ["numpy>=1.21.0", "scipy>=1.10.0"]
@@ -34,12 +37,118 @@ jax = ["jax[cpu]>=0.4.0"]
 jax-gpu = ["jax[cuda]>=0.4.0"]
 torch = ["torch>=2.0.0"]
 all = ["numpy>=1.21.0", "scipy>=1.10.0", "jax[cpu]>=0.4.0", "torch>=2.0.0"]
+dev = [
+    "ruff>=0.4",
+    "mypy>=1.0.0",
+    "build>=1.0",
+    "twine>=5.0",
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=4.0.0",
+    "numpy>=1.21.0",
+    "scipy>=1.10.0",
+]
 
 [project.urls]
 Homepage = "https://laakhay.com"
 Repository = "https://github.com/laakhay/quantlab"
 
-[tool.setuptools_scm]
-write_to       = "laakhay/quantlab/_version.py"
-version_scheme = "post-release"
-local_scheme   = "no-local-version"
+[tool.hatch.build.targets.wheel]
+packages = ["laakhay"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/laakhay",
+    "/README.md",
+    "/LICENSE",
+    "/pyproject.toml",
+]
+exclude = [
+    "/tests",
+    "/.pytest_cache",
+    "/__pycache__",
+    "*.pyc",
+    "*.pyo",
+    "*.pyd",
+    "/.venv",
+    "/venv",
+    "/build",
+    "/dist",
+    "*.egg-info",
+]
+
+[tool.hatch.version]
+source = "vcs"
+version-scheme = "post-release"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+exclude = [
+    ".git",
+    "__pycache__",
+    ".venv",
+    "venv",
+    ".pytest_cache",
+    "build",
+    "dist",
+    "*.egg-info",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "SIM", # flake8-simplify
+    "ARG", # flake8-unused-arguments
+    "PTH", # flake8-use-pathlib
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+    "B027",  # empty method in abstract base class without abstract decorator
+    "ARG001", # unused function argument
+    "ARG002", # unused method argument
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.ruff.lint.isort]
+known-first-party = ["laakhay"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = false
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+disallow_any_generics = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+pythonpath = ["."]
+addopts = [
+    "--strict-markers",
+    "--tb=short",
+]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+    "pytest-asyncio>=1.2.0",
+    "pytest-cov>=7.0.0",
+]
