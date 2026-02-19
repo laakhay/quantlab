@@ -9,16 +9,19 @@ endif
 PYTHON_VERSION ?= 3.12
 PY := $(shell if [ -f .venv/bin/python ]; then echo .venv/bin/python; else echo python3; fi)
 
-.PHONY: help install test lint format type-check fix clean build
+.PHONY: help install test lint lint-fix format format-check type-check check fix clean build
 
 help:
 	@echo "Make targets:"
 	@echo "  install         Install project and dev dependencies."
 	@echo "  test            Run tests."
-	@echo "  lint            Run ruff lint."
+	@echo "  lint            Run ruff lint check."
+	@echo "  lint-fix        Run ruff lint and auto-fix issues."
 	@echo "  format          Run ruff format."
+	@echo "  format-check    Check if code is formatted correctly."
 	@echo "  type-check      Run mypy check."
-	@echo "  fix             Auto-fix linting and formatting."
+	@echo "  check           Run all checks (lint + format check)."
+	@echo "  fix             Auto-fix all fixable issues (lint + format)."
 	@echo "  clean           Remove caches and build artifacts."
 	@echo "  build           Build distribution packages."
 
@@ -32,15 +35,21 @@ test:
 lint:
 	@$(UV) run ruff check .
 
+lint-fix:
+	@$(UV) run ruff check --fix .
+
 format:
 	@$(UV) run ruff format .
+
+format-check:
+	@$(UV) run ruff format --check .
 
 type-check:
 	@$(UV) run mypy laakhay/quantlab
 
-fix:
-	@$(UV) run ruff check --fix .
-	@$(UV) run ruff format .
+check: lint format-check
+
+fix: lint-fix format
 
 clean:
 	@find . -name '__pycache__' -type d -prune -exec rm -rf {} +
