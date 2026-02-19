@@ -32,9 +32,7 @@ class TestGaussianSampler:
         for shape in shapes:
             if backend.name == "jax":
                 if not hasattr(backend, "random_normal"):
-                    pytest.skip(
-                        f"{backend.name} backend doesn't support random generation"
-                    )
+                    pytest.skip(f"{backend.name} backend doesn't support random generation")
                 import jax
 
                 key = jax.random.PRNGKey(42)
@@ -68,9 +66,7 @@ class TestGaussianSampler:
 
         if backend.name == "jax":
             key = backend.random_key(42)
-            samples = sampler.sample(
-                (10000,), backend=backend, key=key, standardize=True
-            )
+            samples = sampler.sample((10000,), backend=backend, key=key, standardize=True)
         else:
             samples = sampler.sample((10000,), backend=backend, standardize=True)
 
@@ -184,18 +180,14 @@ class TestGaussianSampler:
 
         # Use looser tolerance for float32
         tolerance = 1e-5 if str(q_vals.dtype).endswith("32") else 1e-6
-        assert (
-            backend.to_numpy(backend.max(backend.abs(q_vals - q_recovered))) < tolerance
-        )
+        assert backend.to_numpy(backend.max(backend.abs(q_vals - q_recovered))) < tolerance
 
         # Test PPF(CDF(x)) = x
         x_test = backend.array([-1.0, 0.0, 1.0, 2.0, 3.0])
         q_test = sampler.cdf(x_test, backend=backend)
         x_recovered = sampler.ppf(q_test, backend=backend)
 
-        assert (
-            backend.to_numpy(backend.max(backend.abs(x_test - x_recovered))) < tolerance
-        )
+        assert backend.to_numpy(backend.max(backend.abs(x_test - x_recovered))) < tolerance
 
     def test_moments(self, backend):
         """Test skewness and excess kurtosis."""
@@ -214,9 +206,7 @@ class TestGaussianSampler:
         t_vals = [0.1, 0.5, 1.0]
         for t in t_vals:
             mgf_computed = sampler.mgf(t, backend=backend)
-            mgf_expected = backend.to_numpy(
-                backend.exp(backend.array(1.0 * t + 0.5**2 * t**2 / 2))
-            )
+            mgf_expected = backend.to_numpy(backend.exp(backend.array(1.0 * t + 0.5**2 * t**2 / 2)))
 
             # MGF is computed via sampling, so allow some tolerance
             relative_error = abs(mgf_computed - mgf_expected) / mgf_expected

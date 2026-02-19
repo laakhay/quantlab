@@ -39,9 +39,7 @@ class TorchBackend(AbstractBackend):
         device_str = str(device) if device else None
         return torch.arange(*args, dtype=dtype, device=device_str)
 
-    def linspace(
-        self, start: float, stop: float, num: int = 50, device: any = None
-    ) -> Array:
+    def linspace(self, start: float, stop: float, num: int = 50, device: any = None) -> Array:
         device_str = str(device) if device else None
         return torch.linspace(start, stop, num, device=device_str)
 
@@ -139,9 +137,7 @@ class TorchBackend(AbstractBackend):
     def where(self, cond: Array, x: Array, y: Array) -> Array:
         return torch.where(cond, x, y)
 
-    def clip(
-        self, a: Array, min: float | None = None, max: float | None = None
-    ) -> Array:
+    def clip(self, a: Array, min: float | None = None, max: float | None = None) -> Array:
         return torch.clamp(a, min=min, max=max)
 
     def maximum(self, a: Array, b: Array) -> Array:

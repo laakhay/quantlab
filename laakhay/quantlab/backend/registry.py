@@ -67,9 +67,7 @@ def infer_backend_from_arrays(*arrays: Any) -> str | None:
     elif len(backends) == 1:
         return backends.pop()
     else:
-        raise MixedBackendError(
-            f"Arrays from different backends cannot be mixed: {backends}"
-        )
+        raise MixedBackendError(f"Arrays from different backends cannot be mixed: {backends}")
 
 
 def convert_array(array: Any, to_backend: str, from_backend: str | None = None) -> Any:

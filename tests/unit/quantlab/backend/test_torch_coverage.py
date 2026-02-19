@@ -171,19 +171,19 @@ class TestTorchCoverage:
         b = torch_backend
 
         # Test solve
-        A = b.array([[3.0, 1.0], [1.0, 2.0]])
+        a_mat = b.array([[3.0, 1.0], [1.0, 2.0]])
         b_vec = b.array([9.0, 8.0])
-        x = b.solve(A, b_vec)
+        x = b.solve(a_mat, b_vec)
         assert b.shape(x) == (2,)
 
         # Test inv
-        A_inv = b.inv(A)
-        assert b.shape(A_inv) == (2, 2)
+        a_inv = b.inv(a_mat)
+        assert b.shape(a_inv) == (2, 2)
 
-        identity = b.matmul(A, A_inv)
+        identity = b.matmul(a_mat, a_inv)
         assert b.shape(identity) == (2, 2)
 
         # Test det
-        det_A = b.det(A)
-        assert b.shape(det_A) == ()  # scalar
-        assert abs(b.to_numpy(det_A) - 5.0) < 0.01  # det should be 5
+        det_a = b.det(a_mat)
+        assert b.shape(det_a) == ()  # scalar
+        assert abs(b.to_numpy(det_a) - 5.0) < 0.01  # det should be 5

@@ -189,9 +189,7 @@ class TestAutodiff:
 
         def f(x):
             # f(x) = x^2 + 3x + 1
-            return b_autodiff.add(
-                b_autodiff.add(b_autodiff.mul(x, x), b_autodiff.mul(3, x)), 1
-            )
+            return b_autodiff.add(b_autodiff.add(b_autodiff.mul(x, x), b_autodiff.mul(3, x)), 1)
 
         grad_f = b_autodiff.grad(f)
 
@@ -232,16 +230,12 @@ class TestAutodiff:
 
         # Check value
         expected_value = np.exp(1) * np.sin(1)
-        np.testing.assert_allclose(
-            float(b_autodiff.to_numpy(value)), expected_value, rtol=1e-6
-        )
+        np.testing.assert_allclose(float(b_autodiff.to_numpy(value)), expected_value, rtol=1e-6)
 
         # Check gradient (using product rule)
         # f'(x) = exp(x)*sin(x) + exp(x)*cos(x) = exp(x)*(sin(x) + cos(x))
         expected_grad = np.exp(1) * (np.sin(1) + np.cos(1))
-        np.testing.assert_allclose(
-            float(b_autodiff.to_numpy(grad)), expected_grad, rtol=1e-6
-        )
+        np.testing.assert_allclose(float(b_autodiff.to_numpy(grad)), expected_grad, rtol=1e-6)
 
     def test_grad_with_array_output(self, b_autodiff):
         """Test gradient when function returns array."""
@@ -383,9 +377,7 @@ class TestRandomGeneration:
         # Check mean
         mean = b_random.mean(samples)
         expected_mean = (low + high) / 2
-        np.testing.assert_allclose(
-            float(b_random.to_numpy(mean)), expected_mean, atol=0.1
-        )
+        np.testing.assert_allclose(float(b_random.to_numpy(mean)), expected_mean, atol=0.1)
 
     def test_random_reproducibility(self, b_random):
         """Test that same seed gives same results."""
@@ -395,9 +387,7 @@ class TestRandomGeneration:
         key2 = b_random.random_key(42)
         samples2 = b_random.random_normal(key2, (100,))
 
-        np.testing.assert_array_equal(
-            b_random.to_numpy(samples1), b_random.to_numpy(samples2)
-        )
+        np.testing.assert_array_equal(b_random.to_numpy(samples1), b_random.to_numpy(samples2))
 
     def test_random_split(self, b_random):
         """Test key splitting for independent streams."""

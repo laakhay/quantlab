@@ -24,9 +24,7 @@ class GaussianSampler(BaseSampler):
             Array of samples from N(0,1)
         """
         if not hasattr(backend, "random_normal"):
-            raise NotImplementedError(
-                f"Random sampling not implemented for {backend.name}"
-            )
+            raise NotImplementedError(f"Random sampling not implemented for {backend.name}")
         return backend.random_normal(key, shape)
 
     def sample(
@@ -55,9 +53,7 @@ class GaussianSampler(BaseSampler):
         if standardize:
             return z
 
-        return backend.add(
-            backend.mul(z, backend.array(self._std)), backend.array(self._mean)
-        )
+        return backend.add(backend.mul(z, backend.array(self._std)), backend.array(self._mean))
 
     def pdf(
         self,
@@ -88,9 +84,7 @@ class GaussianSampler(BaseSampler):
             exponent = backend.mul(backend.array(-0.5), backend.pow(x, 2))
         else:
             norm_const = 1.0 / (self._std * sqrt_2pi)
-            z = backend.div(
-                backend.sub(x, backend.array(self._mean)), backend.array(self._std)
-            )
+            z = backend.div(backend.sub(x, backend.array(self._mean)), backend.array(self._std))
             exponent = backend.mul(backend.array(-0.5), backend.pow(z, 2))
 
         return backend.mul(backend.array(norm_const), backend.exp(exponent))
@@ -119,9 +113,7 @@ class GaussianSampler(BaseSampler):
         if standardize:
             z = x
         else:
-            z = backend.div(
-                backend.sub(x, backend.array(self._mean)), backend.array(self._std)
-            )
+            z = backend.div(backend.sub(x, backend.array(self._mean)), backend.array(self._std))
 
         return backend.norm_cdf(z)
 
@@ -154,9 +146,7 @@ class GaussianSampler(BaseSampler):
         if standardize:
             return z
 
-        return backend.add(
-            backend.mul(z, backend.array(self._std)), backend.array(self._mean)
-        )
+        return backend.add(backend.mul(z, backend.array(self._std)), backend.array(self._mean))
 
     def __repr__(self) -> str:
         """String representation of Gaussian sampler."""

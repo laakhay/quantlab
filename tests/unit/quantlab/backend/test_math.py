@@ -150,23 +150,17 @@ class TestTrigonometric:
 
         # tanh
         tanh_result = b.tanh(a)
-        np.testing.assert_allclose(
-            b.to_numpy(tanh_result), np.tanh([-1, 0, 1, 2]), rtol=1e-6
-        )
+        np.testing.assert_allclose(b.to_numpy(tanh_result), np.tanh([-1, 0, 1, 2]), rtol=1e-6)
 
         # sinh
         if hasattr(b, "sinh"):
             sinh_result = b.sinh(a)
-            np.testing.assert_allclose(
-                b.to_numpy(sinh_result), np.sinh([-1, 0, 1, 2]), rtol=1e-6
-            )
+            np.testing.assert_allclose(b.to_numpy(sinh_result), np.sinh([-1, 0, 1, 2]), rtol=1e-6)
 
         # cosh
         if hasattr(b, "cosh"):
             cosh_result = b.cosh(a)
-            np.testing.assert_allclose(
-                b.to_numpy(cosh_result), np.cosh([-1, 0, 1, 2]), rtol=1e-6
-            )
+            np.testing.assert_allclose(b.to_numpy(cosh_result), np.cosh([-1, 0, 1, 2]), rtol=1e-6)
 
     def test_trig_identities(self, b):
         """Test trigonometric identities."""
@@ -311,15 +305,9 @@ class TestComparisons:
         isinf = b.isinf(arr)
         isfinite = b.isfinite(arr)
 
-        np.testing.assert_array_equal(
-            b.to_numpy(isnan), [True, False, False, False, False]
-        )
-        np.testing.assert_array_equal(
-            b.to_numpy(isinf), [False, True, True, False, False]
-        )
-        np.testing.assert_array_equal(
-            b.to_numpy(isfinite), [False, False, False, True, True]
-        )
+        np.testing.assert_array_equal(b.to_numpy(isnan), [True, False, False, False, False])
+        np.testing.assert_array_equal(b.to_numpy(isinf), [False, True, True, False, False])
+        np.testing.assert_array_equal(b.to_numpy(isfinite), [False, False, False, True, True])
 
 
 class TestSelection:
@@ -348,9 +336,7 @@ class TestSelection:
 
         # Only max
         clipped_max = b.clip(arr, max=2)
-        np.testing.assert_array_equal(
-            b.to_numpy(clipped_max), [-2, -1, 0, 1, 2, 2, 2, 2]
-        )
+        np.testing.assert_array_equal(b.to_numpy(clipped_max), [-2, -1, 0, 1, 2, 2, 2, 2])
 
     def test_maximum_minimum(self, b):
         """Test elementwise max/min."""
@@ -416,14 +402,14 @@ class TestLinearAlgebra:
         if not hasattr(b, "solve"):
             pytest.skip("solve not implemented")
 
-        # Simple system: Ax = b
-        A = b.array([[2.0, 1.0], [1.0, 3.0]])
+        # Simple system: ax = b
+        a_mat = b.array([[2.0, 1.0], [1.0, 3.0]])
         b_vec = b.array([5.0, 4.0])
 
-        x = b.solve(A, b_vec)
+        x = b.solve(a_mat, b_vec)
 
-        # Verify Ax = b
-        result = b.matmul(A, x)
+        # Verify ax = b
+        result = b.matmul(a_mat, x)
         np.testing.assert_allclose(b.to_numpy(result), b.to_numpy(b_vec), rtol=1e-6)
 
     def test_inv(self, b):
@@ -431,14 +417,12 @@ class TestLinearAlgebra:
         if not hasattr(b, "inv"):
             pytest.skip("inv not implemented")
 
-        A = b.array([[4.0, 7.0], [2.0, 6.0]])
-        A_inv = b.inv(A)
+        a_mat = b.array([[4.0, 7.0], [2.0, 6.0]])
+        a_inv = b.inv(a_mat)
 
-        # Verify A @ A_inv = I
-        identity = b.matmul(A, A_inv)
-        np.testing.assert_allclose(
-            b.to_numpy(identity), np.eye(2), rtol=1e-6, atol=1e-6
-        )
+        # Verify a @ a_inv = I
+        identity = b.matmul(a_mat, a_inv)
+        np.testing.assert_allclose(b.to_numpy(identity), np.eye(2), rtol=1e-6, atol=1e-6)
 
     def test_det(self, b):
         """Test determinant."""
@@ -446,8 +430,8 @@ class TestLinearAlgebra:
             pytest.skip("det not implemented")
 
         # 2x2 determinant
-        A = b.array([[3.0, 8.0], [4.0, 6.0]])
-        det = b.det(A)
+        a_mat = b.array([[3.0, 8.0], [4.0, 6.0]])
+        det = b.det(a_mat)
         expected = 3 * 6 - 8 * 4  # -14
         np.testing.assert_allclose(float(b.to_numpy(det)), expected, rtol=1e-6)
 
@@ -466,9 +450,7 @@ class TestSpecialFunctions:
         # Check known values
         result_np = b.to_numpy(result)
         np.testing.assert_allclose(result_np[2], 0.0, atol=1e-6)  # erf(0) = 0
-        np.testing.assert_allclose(
-            result_np[3], -result_np[1], atol=1e-6
-        )  # erf(-x) = -erf(x)
+        np.testing.assert_allclose(result_np[3], -result_np[1], atol=1e-6)  # erf(-x) = -erf(x)
 
     def test_norm_cdf_pdf(self, b):
         """Test normal distribution functions."""
@@ -486,9 +468,7 @@ class TestSpecialFunctions:
         if hasattr(b, "norm_pdf"):
             pdf = b.norm_pdf(x)
             pdf_np = b.to_numpy(pdf)
-            np.testing.assert_allclose(
-                pdf_np[2], 1 / np.sqrt(2 * np.pi), atol=1e-6
-            )  # phi(0)
+            np.testing.assert_allclose(pdf_np[2], 1 / np.sqrt(2 * np.pi), atol=1e-6)  # phi(0)
 
 
 class TestNumericalStability:
@@ -513,15 +493,11 @@ class TestNumericalStability:
 
         # log(exp(x)) should equal x
         log_exp = b.log(b.exp(b.div(x_large, 100)))  # Scale down to avoid overflow
-        np.testing.assert_allclose(
-            b.to_numpy(log_exp), b.to_numpy(b.div(x_large, 100)), rtol=1e-6
-        )
+        np.testing.assert_allclose(b.to_numpy(log_exp), b.to_numpy(b.div(x_large, 100)), rtol=1e-6)
 
         # Small values
         x_small = b.array([1e-10, 1e-20, 1e-30])
 
         # exp(log(x)) should equal x
         exp_log = b.exp(b.log(b.add(1, x_small)))  # log(1+x) for stability
-        np.testing.assert_allclose(
-            b.to_numpy(exp_log), b.to_numpy(b.add(1, x_small)), rtol=1e-6
-        )
+        np.testing.assert_allclose(b.to_numpy(exp_log), b.to_numpy(b.add(1, x_small)), rtol=1e-6)

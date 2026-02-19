@@ -41,9 +41,7 @@ class GeometricBrownianMotion:
         if volatility < 0:
             raise ValueError(f"Volatility must be non-negative, got {volatility}")
         if time_to_maturity <= 0:
-            raise ValueError(
-                f"Time to maturity must be positive, got {time_to_maturity}"
-            )
+            raise ValueError(f"Time to maturity must be positive, got {time_to_maturity}")
         if num_steps <= 0:
             raise ValueError(f"Number of steps must be positive, got {num_steps}")
 
@@ -215,9 +213,7 @@ class GeometricBrownianMotion:
         if backend is None:
             backend = active_backend()
 
-        shocks = self.generate_shocks(
-            num_paths, backend=backend, key=key, antithetic=antithetic
-        )
+        shocks = self.generate_shocks(num_paths, backend=backend, key=key, antithetic=antithetic)
         unit_paths = self.build_unit_paths(shocks, backend=backend)
         log_paths = self.build_log_paths(unit_paths, backend=backend)
 

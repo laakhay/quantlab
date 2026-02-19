@@ -113,9 +113,7 @@ class TestGeometricBrownianMotion:
 
         if backend.name == "jax":
             key = backend.random_key(42)
-            shocks = gbm.generate_shocks(
-                num_paths, backend=backend, key=key, antithetic=True
-            )
+            shocks = gbm.generate_shocks(num_paths, backend=backend, key=key, antithetic=True)
         else:
             shocks = gbm.generate_shocks(num_paths, backend=backend, antithetic=True)
 
@@ -260,9 +258,7 @@ class TestGeometricBrownianMotion:
 
         if backend.name == "jax":
             key = backend.random_key(42)
-            log_paths = gbm.generate_paths(
-                num_paths, backend=backend, key=key, return_log=True
-            )
+            log_paths = gbm.generate_paths(num_paths, backend=backend, key=key, return_log=True)
         else:
             log_paths = gbm.generate_paths(num_paths, backend=backend, return_log=True)
 
@@ -322,9 +318,7 @@ class TestGeometricBrownianMotion:
 
         # Expected value under risk-neutral measure
         expected_mean = spot * float(
-            backend.to_numpy(
-                backend.exp(backend.array(risk_free_rate * time_to_maturity))
-            )
+            backend.to_numpy(backend.exp(backend.array(risk_free_rate * time_to_maturity)))
         )
         sample_mean = float(backend.to_numpy(backend.mean(terminal_vals)))
 
@@ -359,9 +353,7 @@ class TestGeometricBrownianMotion:
                 num_paths, backend=backend, key=key, antithetic=True
             )
         else:
-            terminal_vals = gbm.terminal_values(
-                num_paths, backend=backend, antithetic=True
-            )
+            terminal_vals = gbm.terminal_values(num_paths, backend=backend, antithetic=True)
 
         assert backend.shape(terminal_vals) == (num_paths,)
 
@@ -384,9 +376,7 @@ class TestGeometricBrownianMotion:
         # Check that final values have expected drift
         final_values = drifted_paths[:, -1]
         expected_final = constant_value * float(
-            backend.to_numpy(
-                backend.exp(backend.array(gbm.drift * gbm.time_to_maturity))
-            )
+            backend.to_numpy(backend.exp(backend.array(gbm.drift * gbm.time_to_maturity)))
         )
 
         diff = backend.abs(backend.sub(final_values, backend.array(expected_final)))

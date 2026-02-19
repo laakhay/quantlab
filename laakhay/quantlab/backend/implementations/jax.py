@@ -37,9 +37,7 @@ class JaxBackend(NumpyBackend):
     def arange(self, *args, dtype: any = None, device: any = None) -> Array:
         return jnp.arange(*args, dtype=dtype)
 
-    def linspace(
-        self, start: float, stop: float, num: int = 50, device: any = None
-    ) -> Array:
+    def linspace(self, start: float, stop: float, num: int = 50, device: any = None) -> Array:
         return jnp.linspace(start, stop, num)
 
     def eye(self, n: int, m: int | None = None, device: any = None) -> Array:

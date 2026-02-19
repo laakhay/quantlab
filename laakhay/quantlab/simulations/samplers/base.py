@@ -122,9 +122,7 @@ class BaseSampler(ABC):
         """
         pass
 
-    def _compute_moments(
-        self, backend: ArrayBackend | None = None
-    ) -> tuple[float, float]:
+    def _compute_moments(self, backend: ArrayBackend | None = None) -> tuple[float, float]:
         """Compute skew and excess kurtosis using backend.
 
         Args:

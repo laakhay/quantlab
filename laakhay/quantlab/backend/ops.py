@@ -105,9 +105,7 @@ class Ops:
         return backend.where(cond, x, y)
 
     @staticmethod
-    def clip(
-        a: Array, min_val: float | None = None, max_val: float | None = None
-    ) -> Array:
+    def clip(a: Array, min_val: float | None = None, max_val: float | None = None) -> Array:
         return Ops.unary_op("clip", a, min=min_val, max=max_val)
 
     @staticmethod

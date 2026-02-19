@@ -49,10 +49,9 @@ except ImportError:
     JaxArray = _JaxArray
 
 # Runtime type definitions - use typing-compatible syntax
-from typing import Union
 
-Scalar = Union[float, int]
+Scalar = float | int
 Shape = tuple
-Axis = Union[int, tuple, None]
+Axis = int | tuple | None
 ArrayLike = any
 Size = int

@@ -35,9 +35,7 @@ class NumpyBackend(AbstractBackend):
     def arange(self, *args, dtype: any = None, device: any = None) -> Array:
         return np.arange(*args, dtype=dtype)
 
-    def linspace(
-        self, start: float, stop: float, num: int = 50, device: any = None
-    ) -> Array:
+    def linspace(self, start: float, stop: float, num: int = 50, device: any = None) -> Array:
         return np.linspace(start, stop, num)
 
     def eye(self, n: int, m: int | None = None, device: any = None) -> Array:
@@ -112,9 +110,7 @@ class NumpyBackend(AbstractBackend):
     def where(self, cond: Array, x: Array, y: Array) -> Array:
         return np.where(cond, x, y)
 
-    def clip(
-        self, a: Array, min: float | None = None, max: float | None = None
-    ) -> Array:
+    def clip(self, a: Array, min: float | None = None, max: float | None = None) -> Array:
         return np.clip(a, min, max)
 
     def maximum(self, a: Array, b: Array) -> Array:
@@ -259,9 +255,7 @@ class NumpyBackend(AbstractBackend):
             sign = _np.sign(x)
             x = _np.abs(x)
             t = 1.0 / (1.0 + p * x)
-            y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * _np.exp(
-                -x * x
-            )
+            y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * _np.exp(-x * x)
             return sign * y
 
     def erfc(self, x: Array) -> Array:
@@ -288,9 +282,7 @@ class NumpyBackend(AbstractBackend):
 
             return norm.ppf(q)
         except ImportError:
-            raise NotImplementedError(
-                "norm_ppf requires scipy for numpy backend"
-            ) from None
+            raise NotImplementedError("norm_ppf requires scipy for numpy backend") from None
 
     def gamma(self, x: Array) -> Array:
         from scipy.special import gamma

@@ -86,11 +86,7 @@ class ArrayBackend:
 
             def wrapped_func(*args):
                 output = func(*args)
-                scalar = (
-                    output.sum()
-                    if hasattr(output, "shape") and output.shape
-                    else output
-                )
+                scalar = output.sum() if hasattr(output, "shape") and output.shape else output
                 return scalar
 
             scalar_value_and_grad = jax.value_and_grad(wrapped_func, argnums=argnums)
