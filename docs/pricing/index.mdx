@@ -1,0 +1,34 @@
+# Pricing & Derivatives
+
+The `pricing` module provides a comprehensive framework for modeling, pricing, and analyzing financial derivatives. It supports both analytical (closed-form) and numerical (Monte Carlo) pricing methods, along with first-order and second-order Greeks calculation.
+
+## Core Components
+
+The pricing engine is built around three primary abstractions:
+
+1. **Market Data** (`MarketData`): Encapsulates the state of the market (spot price, volatility, interest rates).
+2. **Instrument** (`OptionContract`, `OptionLeg`): Defines the financial payoff structure.
+3. **Pricer** (`Pricer`): Executes the pricing logic using a specific method/backend.
+
+## Quick Example
+
+```python
+from laakhay.quantlab.pricing import MarketData, EuropeanCall, Pricer, PricingMethod
+
+# 1. Market State
+market = MarketData(spot=100.0, rate=0.05, vol=0.2)
+
+# 2. Instrument
+call = EuropeanCall(strike=100.0, expiry=1.0)
+
+# 3. Price
+pricer = Pricer(method=PricingMethod.BLACK_SCHOLES)
+price = pricer.price(call, market)
+```
+
+## Supported Features
+
+- **Vanilla Options**: European, American (via MC), Digital.
+- **Exotic Options**: Asian (Geometric), Barrier (Up/Down, In/Out).
+- **Strategies**: Spreads (Bull/Bear), Straddles, Strangles, Iron Condors, Butterflies.
+- **Greeks**: Delta, Gamma, Vega, Theta, Rho.

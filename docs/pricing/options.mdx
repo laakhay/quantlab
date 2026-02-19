@@ -1,0 +1,89 @@
+# Options & Strategies
+
+Quantlab supports a wide variety of option contracts, ranging from standard vanilla options to path-dependent exotics and complex multi-leg strategies.
+
+## Single Leg Options
+
+Single leg options are the building blocks of more complex strategies.
+
+### Vanilla Options
+
+- **`EuropeanCall` / `EuropeanPut`**: Standard options exercisable only at expiry.
+- **`DigitalCall` / `DigitalPut`**: Binary options that pay a fixed amount if ITM.
+
+```python
+from laakhay.quantlab.pricing import EuropeanCall, DigitalPut
+
+call = EuropeanCall(strike=100.0, expiry=0.5)
+binary_put = DigitalPut(strike=90.0, expiry=0.5, payout=1.0)
+```
+
+### Exotic Options
+
+#### Barrier Options
+Options that become active (In) or inactive (Out) if the asset price crosses a barrier level.
+
+- **`UpAndOutCall`**: Becomes worthless if price goes above barrier.
+- **`DownAndInCall`**: Becomes active only if price drops below barrier.
+
+```python
+from laakhay.quantlab.pricing import UpAndOutCall
+
+barrier_call = UpAndOutCall(strike=100.0, barrier=120.0, expiry=1.0)
+```
+
+#### Asian Options
+Options where the payoff depends on the average price over the life of the option.
+
+- **`GeometricAsianCall` / `GeometricAsianPut`**: Payoff based on geometric average.
+
+```python
+from laakhay.quantlab.pricing import GeometricAsianCall
+
+asian_call = GeometricAsianCall(strike=100.0, expiry=1.0)
+```
+
+## Multi-Leg Strategies
+
+Strategies represent combinations of multiple option legs. Quantlab provides helper functions to construct common strategies easily.
+
+### Vertical Spreads
+
+A strategy involving buying and selling options of the same type and expiry but different strikes.
+
+```python
+from laakhay.quantlab.pricing import vertical_spread, Side
+
+# Bull Call Spread: Long Call (K=100) + Short Call (K=110)
+spread = vertical_spread(
+    strike_long=100.0, 
+    strike_short=110.0, 
+    expiry=1.0, 
+    is_call=True
+)
+```
+
+### Volatility Strategies
+
+Strategies designed to profit from volatility (or lack thereof).
+
+- **`straddle`**: Long Call + Long Put at same strike.
+- **`strangle`**: Long Call + Long Put at different strikes.
+- **`iron_condor`**: Combination of Bull Put Spread and Bear Call Spread.
+- **`butterfly_spread`**: Three strikes, betting on low volatility.
+
+```python
+from laakhay.quantlab.pricing import straddle, iron_condor
+
+# Long Straddle
+long_straddle = straddle(strike=100.0, expiry=1.0)
+
+# Iron Condor
+condor = iron_condor(
+    k1_put_long=90, 
+    k2_put_short=95, 
+    k3_call_short=105, 
+    k4_call_long=110, 
+    expiry=1.0
+)
+```

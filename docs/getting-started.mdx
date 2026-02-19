@@ -1,0 +1,77 @@
+# Getting Started
+
+## Installation
+
+### Base Package
+The base package avoids hard dependency on large array frameworks.
+
+```bash
+pip install laakhay-quantlab
+```
+
+### With Backend Extras
+
+```bash
+# NumPy backend (default)
+pip install "laakhay-quantlab[numpy]"
+
+# JAX backend (CPU/GPU)
+pip install "laakhay-quantlab[jax]"
+
+# PyTorch backend
+pip install "laakhay-quantlab[torch]"
+
+# All backends
+pip install "laakhay-quantlab[all]"
+```
+
+## Quickstart
+
+### 1. Backend Operations
+Use the `backend` factory to get a unified interface.
+
+```python
+from laakhay.quantlab.backend import backend
+from laakhay.quantlab.backend.ops import mean, std
+
+# Initialize NumPy backend
+b = backend('numpy')
+
+# Create random array and compute stats
+x = b.random_normal(key=42, shape=(1000,))
+print(f"Mean: {b.to_numpy(mean(x)):.4f}, Std: {b.to_numpy(std(x)):.4f}")
+```
+
+### 2. Simulation (GBM)
+Simulate Geometric Brownian Motion paths using the `GaussianSampler`.
+
+```python
+from laakhay.quantlab.simulations import GaussianSampler, GeometricBrownianMotion
+
+# Setup Sampler and Process
+sampler = GaussianSampler(mean=0.0, std=1.0)
+gbm = GeometricBrownianMotion(
+    spot=100.0,
+    drift=0.05,
+    volatility=0.2,
+    time_to_maturity=1.0,
+    num_steps=252,
+    sampler=sampler,
+)
+
+# Generate Paths (NumPy backend)
+paths = gbm.generate_paths(num_paths=1000, backend=b)
+print(f"Paths Shape: {b.shape(paths)}")
+```
+
+### 3. Using JAX
+To switch to JAX, simply request the backend and provide a key for PRNG.
+
+```python
+# Initialize JAX backend
+jax_b = backend('jax')
+key = jax_b.random_key(42)
+
+# Generate paths on GPU/TPU (if available)
+paths_jax = gbm.generate_paths(num_paths=1000, backend=jax_b, key=key)
+```

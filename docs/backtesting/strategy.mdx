@@ -1,0 +1,41 @@
+# Strategies & Signals
+
+Strategies determine when to enter and exit trades. `quantlab` allows you to define strategies using simple logical expressions or by subclassing the `Strategy` class.
+
+## Signal Generation
+
+Signals are generated based on Technical Analysis (TA) indicators or custom logic.
+
+### Expression-Based Strategy
+Use string expressions to define entry and exit conditions. This integrates with `laakhay-ta`.
+
+```python
+from laakhay.quantlab.backtest import Strategy
+
+strategy = Strategy(
+    entry_signal="rsi(14) < 30 and close > ema(200)",
+    exit_signal="rsi(14) > 70"
+)
+```
+
+### Custom Strategy Logic
+For complex logic, you can override the `on_bar` method (if using class-based extension). *Note: Python-based custom logic integration is flexible.*
+
+## Risk Management
+
+You can control risk per trade using `BacktestConfig` or by attaching SL/TP to signals.
+
+- **Stop Loss (SL)**: Fixed percentage or ATR-based.
+- **Take Profit (TP)**: Fixed percentage or Reward-to-Risk ratio.
+- **Position Sizing**: Fixed capital, percentage of equity, or Kelly Criterion.
+
+```python
+from laakhay.quantlab.backtest import BacktestConfig, RiskType
+
+config = BacktestConfig(
+    risk_type=RiskType.PERCENTAGE,
+    risk_value=0.02,  # Risk 2% per trade
+    sl_pct=0.05,      # 5% Stop Loss
+    tp_pct=0.10       # 10% Take Profit
+)
+```

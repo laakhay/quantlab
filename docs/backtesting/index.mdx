@@ -1,0 +1,31 @@
+# Backtesting
+
+The `backtest` module in `laakhay-quantlab` allows you to simulate trading strategies against historical data. It supports event-driven backtesting with flexible signal generation and risk management.
+
+## Core Components
+
+- **`DataFeed`**: Stream of market data (Bars).
+- **`Strategy`**: Logic to generate `Signal`s from data.
+- **`BacktestEngine`**: Executes trades based on strategy signals and manages portfolio state.
+- **`BacktestConfig`**: Configuration for risk, execution, and capital.
+
+## Quick Example
+
+```python
+from laakhay.quantlab.backtest import BacktestEngine, MemDataFeed, Strategy
+
+# 1. Prepare Data (List of Bar objects)
+feed = MemDataFeed(bars, symbol="BTCUSDT", timeframe="1h")
+
+# 2. Define Strategy (Declarative or Custom)
+strategy = Strategy(
+    entry_signal="sma(20) > sma(50)", 
+    exit_signal="sma(20) < sma(50)"
+)
+
+# 3. Run Backtest
+engine = BacktestEngine(initial_capital=10000.0)
+results = engine.run(strategy, feed)
+
+print(f"Final Capital: {results['final_capital']}")
+```

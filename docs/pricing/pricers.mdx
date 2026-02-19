@@ -1,0 +1,50 @@
+# Pricers & Greeks
+
+The core of the `pricing` module is the `Pricer` class, which dispatches the pricing logic to the appropriate backend method.
+
+## Pricing Methods
+
+### Black-Scholes (`PricingMethod.BLACK_SCHOLES`)
+Analytical closed-form solution. Extremely fast and accurate for vanilla options and Geometric Asian options.
+
+**Best for**: European Calls/Puts, Digital Options, Geometric Asian.
+
+### Monte Carlo (`PricingMethod.MONTE_CARLO`)
+Numerical simulation method. flexible and capable of pricing path-dependent options where analytical formulas do not exist.
+
+**Best for**: Barrier Options, complex path-dependent payoffs, American options (via LSM - *coming soon*).
+
+```python
+from laakhay.quantlab.pricing import Pricer, PricingMethod
+
+# Use Black-Scholes
+bs_pricer = Pricer(method=PricingMethod.BLACK_SCHOLES)
+
+# Use Monte Carlo with 100,000 paths
+mc_pricer = Pricer(method=PricingMethod.MONTE_CARLO, num_paths=100000)
+```
+
+## Greeks Calculation
+
+The `Pricer` can calculate Greeks (sensitivities) alongside the price.
+
+| Greek | Description |
+| :--- | :--- |
+| **Delta** | Sensitivity to underlying price change ($dS$). |
+| **Gamma** | Sensitivity to Delta change ($d^2S$). |
+| **Vega** | Sensitivity to volatility change ($d\sigma$). |
+| **Theta** | Sensitivity to time decay ($dt$). |
+| **Rho** | Sensitivity to interest rate change ($dr$). |
+
+### Calculating Greeks
+
+Use `price_with_greeks` to get both the price and a `Greeks` object.
+
+```python
+price, greeks = pricer.price_with_greeks(option, market)
+
+print(f"Price: {price}")
+print(f"Delta: {greeks.delta}")
+print(f"Gamma: {greeks.gamma}")
+print(f"Vega:  {greeks.vega}")
+```

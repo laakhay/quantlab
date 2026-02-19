@@ -9,6 +9,7 @@
 - Compact ops facade for backend-dispatched math and reductions.
 - Autodiff/JIT/vectorization helpers via `ArrayBackend`.
 - Simulation primitives: Gaussian sampler and Geometric Brownian Motion (GBM).
+- **Options & Pricing**: Analytical and Monte Carlo pricing for Vanilla/Exotic options and multi-leg strategies.
 
 ## Ecosystem Position
 
@@ -16,7 +17,7 @@
 - `laakhay-ta`: indicator and strategy expression engine.
 - `laakhay-quantlab`: numerical simulation and backend-accelerated quant compute.
 
-Typical flow: `data -> ta -> quantlab` for calibration, risk, and scenario simulation.
+Typical flow: `data -> ta -> quantlab` for calibration, risk, and strategy simulation.
 
 ## Package Info
 
@@ -27,8 +28,8 @@ Typical flow: `data -> ta -> quantlab` for calibration, risk, and scenario simul
 ## Docs Map
 
 - `getting-started`: install + first simulation run.
-- `guides`: practical integration and performance usage.
+- **`backtesting`**: engine, strategies, and execution simulation.
+- **`pricing`**: options, strategies, and pricing models.
 - `api`: public interfaces and usage reference.
 - `backends`: choosing backend options for your workload.
-- `architecture`: high-level design concepts.
-- `testing`: test coverage and CI workflows.
+- `guides`: practical integration and performance usage.
