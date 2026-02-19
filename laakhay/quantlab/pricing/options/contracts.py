@@ -1,9 +1,11 @@
 """European option contracts."""
 
 from dataclasses import dataclass
-from .base import PathIndependentOption, Side, PayoffType
+
 from laakhay.quantlab.backend import Backend
+
 from ..utils import infer_backend
+from .base import PathIndependentOption, PayoffType, Side
 
 
 @dataclass(frozen=True)
@@ -20,9 +22,9 @@ class EuropeanCall(PathIndependentOption):
 
     @infer_backend
     def payoff(self, spot_prices, backend: Backend = None):
-        spot_prices = backend.convert(spot_prices)
-        strike = backend.convert(self.strike)
-        zero = backend.convert(0.0)
+        spot_prices = backend.array(spot_prices)
+        strike = backend.array(self.strike)
+        zero = backend.array(0.0)
         return backend.maximum(backend.sub(spot_prices, strike), zero)
 
     def intrinsic_value(self, spot: float, backend: Backend = None) -> float:
@@ -43,9 +45,9 @@ class EuropeanPut(PathIndependentOption):
 
     @infer_backend
     def payoff(self, spot_prices, backend: Backend = None):
-        spot_prices = backend.convert(spot_prices)
-        strike = backend.convert(self.strike)
-        zero = backend.convert(0.0)
+        spot_prices = backend.array(spot_prices)
+        strike = backend.array(self.strike)
+        zero = backend.array(0.0)
         return backend.maximum(backend.sub(strike, spot_prices), zero)
 
     def intrinsic_value(self, spot: float, backend: Backend = None) -> float:

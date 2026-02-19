@@ -1,8 +1,8 @@
 """Base classes for stochastic simulations."""
 
 from abc import ABC, abstractmethod
+
 from laakhay.quantlab.backend import Backend
-from ..utils import infer_backend
 
 
 class BaseSampler(ABC):

@@ -3,9 +3,8 @@
 from ....greeks import Greeks
 from ....market import MarketData
 from ....options.asian import GeometricAsianCall, GeometricAsianPut
-
+from ..calculations import compute_asian_adjusted_params, compute_d1_d2, compute_discount_factor
 from ..registry import PricingFormula
-from ..calculations import compute_d1_d2, compute_discount_factor, compute_asian_adjusted_params
 
 
 def _normal_pdf(x, backend):
@@ -35,7 +34,7 @@ class AsianGreeks:
         # Get adjusted parameters for Asian option
         vol_hat, drift_hat = compute_asian_adjusted_params(market)
 
-        sqrt_T = backend.sqrt(backend.convert(option.expiry))
+        sqrt_T = backend.sqrt(backend.array(option.expiry))
         discount = compute_discount_factor(option.expiry, market)
 
         phi_d1 = _normal_pdf(d1, backend)

@@ -1,9 +1,9 @@
 """Registry system for Black-Scholes pricing formulas."""
 
 from abc import ABC, abstractmethod
-from laakhay.quantlab.backend import Backend
-from ...market import MarketData
+
 from ...greeks import Greeks
+from ...market import MarketData
 
 
 class PricingFormula(ABC):

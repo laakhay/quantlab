@@ -3,9 +3,8 @@
 from ....greeks import Greeks
 from ....market import MarketData
 from ....options.digital import DigitalCall, DigitalPut
-
-from ..registry import PricingFormula
 from ..calculations import compute_d1_d2, compute_discount_factor
+from ..registry import PricingFormula
 
 
 def _normal_pdf(x, backend):
@@ -26,7 +25,7 @@ class DigitalGreeks:
             zero = backend.zeros_like(market.spot) if hasattr(backend, "zeros_like") else 0.0
             return Greeks(delta=zero, gamma=zero, vega=zero, theta=zero, rho=zero)
 
-        sqrt_T = backend.sqrt(backend.convert(option.expiry))
+        sqrt_T = backend.sqrt(backend.array(option.expiry))
         discount = compute_discount_factor(option.expiry, market)
 
         phi_d2 = _normal_pdf(d2, backend)

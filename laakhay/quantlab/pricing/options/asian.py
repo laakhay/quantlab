@@ -1,8 +1,9 @@
 """Asian option contracts."""
 
 from dataclasses import dataclass
-from .base import PathDependentOption, Side, PayoffType
+
 from ..utils import infer_backend
+from .base import PathDependentOption, PayoffType, Side
 
 
 @dataclass(frozen=True)
@@ -20,10 +21,10 @@ class AsianCall(PathDependentOption):
     @infer_backend
     def _path_payoff(self, price_paths, backend=None):
         """Compute Asian call payoff: max(Avg(S) - K, 0)."""
-        price_paths = backend.convert(price_paths)
+        price_paths = backend.array(price_paths)
         average_price = backend.mean(price_paths, axis=1)
-        strike = backend.convert(self.strike)
-        zero = backend.convert(0.0)
+        strike = backend.array(self.strike)
+        zero = backend.array(0.0)
         return backend.maximum(backend.add(average_price, backend.mul(-1, strike)), zero)
 
 
@@ -42,10 +43,10 @@ class AsianPut(PathDependentOption):
     @infer_backend
     def _path_payoff(self, price_paths, backend=None):
         """Compute Asian put payoff: max(K - Avg(S), 0)."""
-        price_paths = backend.convert(price_paths)
+        price_paths = backend.array(price_paths)
         average_price = backend.mean(price_paths, axis=1)
-        strike = backend.convert(self.strike)
-        zero = backend.convert(0.0)
+        strike = backend.array(self.strike)
+        zero = backend.array(0.0)
         return backend.maximum(backend.add(strike, backend.mul(-1, average_price)), zero)
 
 
@@ -64,10 +65,10 @@ class GeometricAsianCall(PathDependentOption):
     @infer_backend
     def _path_payoff(self, price_paths, backend=None):
         """Compute geometric Asian call payoff: max(GeoAvg(S) - K, 0)."""
-        price_paths = backend.convert(price_paths)
+        price_paths = backend.array(price_paths)
         geometric_average = backend.exp(backend.mean(backend.log(price_paths), axis=1))
-        strike = backend.convert(self.strike)
-        zero = backend.convert(0.0)
+        strike = backend.array(self.strike)
+        zero = backend.array(0.0)
         return backend.maximum(backend.add(geometric_average, backend.mul(-1, strike)), zero)
 
 
@@ -86,8 +87,8 @@ class GeometricAsianPut(PathDependentOption):
     @infer_backend
     def _path_payoff(self, price_paths, backend=None):
         """Compute geometric Asian put payoff: max(K - GeoAvg(S), 0)."""
-        price_paths = backend.convert(price_paths)
+        price_paths = backend.array(price_paths)
         geometric_average = backend.exp(backend.mean(backend.log(price_paths), axis=1))
-        strike = backend.convert(self.strike)
-        zero = backend.convert(0.0)
+        strike = backend.array(self.strike)
+        zero = backend.array(0.0)
         return backend.maximum(backend.add(strike, backend.mul(-1, geometric_average)), zero)

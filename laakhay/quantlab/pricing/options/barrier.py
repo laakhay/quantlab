@@ -2,8 +2,9 @@
 
 from dataclasses import dataclass
 from enum import Enum, auto
-from .base import PathDependentOption, Side, PayoffType
+
 from ..utils import infer_backend
+from .base import PathDependentOption, PayoffType, Side
 
 
 class BarrierDirection(Enum):
@@ -40,8 +41,8 @@ class BarrierOption(PathDependentOption):
     @infer_backend
     def _barrier_breached(self, price_paths, backend=None):
         """Check if barrier is breached in any path."""
-        price_paths = backend.convert(price_paths)
-        barrier = backend.convert(self.barrier)
+        price_paths = backend.array(price_paths)
+        barrier = backend.array(self.barrier)
         if self.barrier_direction == BarrierDirection.UP:
             return backend.any(backend.greater_equal(price_paths, barrier), axis=1)
         else:
@@ -59,12 +60,12 @@ class BarrierOption(PathDependentOption):
     @infer_backend
     def _path_payoff(self, price_paths, backend=None):
         """Compute barrier option payoff."""
-        price_paths = backend.convert(price_paths)
+        price_paths = backend.array(price_paths)
         terminal_prices = price_paths[:, -1]
         active = self._option_active(price_paths, backend=backend)
 
-        strike = backend.convert(self.strike)
-        zero = backend.convert(0.0)
+        strike = backend.array(self.strike)
+        zero = backend.array(0.0)
 
         if self.side == Side.CALL:
             vanilla_payoff = backend.maximum(

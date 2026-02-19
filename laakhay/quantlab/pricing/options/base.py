@@ -1,10 +1,13 @@
 """Base option contract and leg definitions."""
 
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum, auto
+
 from laakhay.quantlab.backend import Backend
+
 from ..utils import infer_backend
 
 
@@ -80,8 +83,8 @@ class OptionContract(ABC):
         return current_time >= self.expiry
 
     @abstractmethod
-    def _path_payoff(self, price_paths, backend: Backend = None):
-        """Compute payoff from full price paths."""
+    def __call__(self, data, backend: Backend = None):
+        """Compute option payoff."""
         pass
 
 

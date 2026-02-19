@@ -2,21 +2,20 @@
 
 from __future__ import annotations
 
-from ...greeks import Greeks
-from ...market import MarketData
-from ...options.barrier import (
-    UpAndOutCall,
-    UpAndOutPut,
+from ....greeks import Greeks
+from ....market import MarketData
+from ....options.barrier import (
+    DownAndInCall,
+    DownAndInPut,
     DownAndOutCall,
     DownAndOutPut,
     UpAndInCall,
     UpAndInPut,
-    DownAndInCall,
-    DownAndInPut,
+    UpAndOutCall,
+    UpAndOutPut,
 )
-
-from ..registry import PricingFormula
 from ..calculations import compute_barrier_terms
+from ..registry import PricingFormula
 
 
 class BarrierFormula(PricingFormula):
@@ -42,15 +41,20 @@ class BarrierFormula(PricingFormula):
     def price(self, option, market: MarketData):
         """Price barrier option using coefficient matrix."""
         backend = market.backend
-        terms = compute_barrier_terms(option, market)
+
+        # Determine phi (Call: 1, Put: -1) and eta (Down: 1, Up: -1)
+        phi = 1 if "Call" in self.option_type else -1
+        eta = 1 if "Down" in self.option_type else -1
+
+        terms = compute_barrier_terms(option, market, phi=phi, eta=eta)
 
         # Stack terms: [A, B, C, D]
         terms_array = backend.convert([terms["A"], terms["B"], terms["C"], terms["D"]])
 
         # Select coefficients based on K <= H condition
-        condition = backend.convert(option.strike <= option.barrier)
-        coeffs_low = backend.convert(self.coeffs[0])  # K <= H
-        coeffs_high = backend.convert(self.coeffs[1])  # K > H
+        condition = backend.array(option.strike <= option.barrier)
+        coeffs_low = backend.array(self.coeffs[0])  # K <= H
+        coeffs_high = backend.array(self.coeffs[1])  # K > H
 
         # selected_coeffs = backend.where(condition, coeffs_low, coeffs_high)
         # We need to handle vectorization if condition is a vector

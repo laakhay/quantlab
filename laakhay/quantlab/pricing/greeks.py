@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, fields
-from laakhay.quantlab.types import Scalar
 
 
 @dataclass
@@ -46,8 +45,7 @@ class Greeks:
         return getattr(self, item)
 
     def __iter__(self):  # Allows dict(greeks) casting
-        for k in self.keys():
-            yield k
+        yield from self.keys()
 
     def __len__(self):
         return 5
@@ -169,5 +167,5 @@ def greeks_from_legs(leg_greeks: list[Greeks], quantities: list[float | int]) ->
     if len(leg_greeks) != len(quantities):
         raise ValueError("Greeks and quantities length mismatch")
 
-    scaled = [greeks * qty for greeks, qty in zip(leg_greeks, quantities)]
+    scaled = [greeks * qty for greeks, qty in zip(leg_greeks, quantities, strict=False)]
     return combine_greeks(*scaled)

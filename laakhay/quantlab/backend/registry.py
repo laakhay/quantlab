@@ -16,8 +16,10 @@ def register(name: str, backend: Backend) -> None:
     _backends[name] = backend
 
 
-def get_backend(name: str | None = None) -> Backend:
+def get_backend(name: str | Backend | None = None) -> Backend:
     """Get backend by name or default."""
+    if name is not None and not isinstance(name, str):
+        return name
     name = name or _default
     if not name or name not in _backends:
         raise BackendNotFoundError(

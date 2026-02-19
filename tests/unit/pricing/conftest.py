@@ -1,8 +1,9 @@
 """Shared fixtures for pricing testing in QuantLab."""
 
-import pytest
 import numpy as np
-from laakhay.quantlab.backend import get_backend, list_backends
+import pytest
+
+from laakhay.quantlab.backend import get_backend
 
 
 @pytest.fixture(params=["numpy"])  # Start with numpy, can add others if needed

@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from laakhay.quantlab.backend import get_backend, Backend
+
+from laakhay.quantlab.backend import Backend, get_backend
 
 
 @dataclass(frozen=True)

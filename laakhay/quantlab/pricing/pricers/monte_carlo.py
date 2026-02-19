@@ -1,12 +1,14 @@
 """Monte Carlo pricing engine."""
 
 from __future__ import annotations
-import itertools
+
 from math import ceil
-from ..market import MarketData
-from ..simulations.samplers import NormalSampler
-from ..simulations.models import GeometricBrownianMotionSimulation
+
 from laakhay.quantlab.backend import get_backend
+
+from ..market import MarketData
+from ..simulations.models import GeometricBrownianMotionSimulation
+from ..simulations.samplers import NormalSampler
 
 
 class MonteCarloPricer:
@@ -18,6 +20,7 @@ class MonteCarloPricer:
         sampler=None,
         n_paths: int = 20_000,
         steps_per_year: int = 252,
+        seed: int | None = None,
         antithetic: bool = True,
         cache: bool = True,
         moment_match: bool = True,
@@ -29,6 +32,7 @@ class MonteCarloPricer:
 
         self.n_paths = n_paths
         self.steps_per_year = steps_per_year
+        self.seed = seed
         self.antithetic = antithetic
         self.cache = cache
         self.moment_match = moment_match
@@ -50,17 +54,36 @@ class MonteCarloPricer:
         n_steps = max(1, int(ceil(self.steps_per_year * expiry)))
 
         # Simple caching based on expiry and n_steps
-        cache_key = (expiry, n_steps, market.spot, market.rate, market.vol)
+        def _make_hashable(val):
+            try:
+                hash(val)
+                return val
+            except TypeError:
+                # If not hashable, it's likely an array/tensor
+                # We convert to a tuple of its flattened values
+                return tuple(self.backend.to_numpy(val).flatten().tolist())
+
+        cache_key = (
+            expiry,
+            n_steps,
+            _make_hashable(market.spot),
+            _make_hashable(market.rate),
+            _make_hashable(market.vol),
+        )
         if self.cache and cache_key in self._path_cache:
             return self._path_cache[cache_key]
+
+        # Set seed if provided
+        if self.seed is not None:
+            self.backend.random_key(self.seed)
 
         paths = self.simulator.generate_paths(
             n_paths=self.n_paths,
             n_steps=n_steps,
             expiry=expiry,
-            spot=float(market.spot),
-            rate=float(market.rate),
-            vol=float(market.vol),
+            spot=market.spot,
+            rate=market.rate,
+            vol=market.vol,
             backend=self.backend,
         )
 
@@ -77,9 +100,11 @@ class MonteCarloPricer:
 
         # Payoff calculation
         payoffs = option(paths, backend=self.backend)
-        discount = self.backend.exp(self.backend.mul(backend.mul(-1, market.rate), option.expiry))
+        discount = self.backend.exp(
+            self.backend.mul(self.backend.mul(-1, market.rate), option.expiry)
+        )
 
-        return self.backend.mul(discount, self.backend.mean(payoffs))
+        return self.backend.mul(discount, self.backend.mean(payoffs, axis=0))
 
     def supports(self, option) -> bool:
         """Check if option is supported."""

@@ -1,10 +1,13 @@
 """Unified pricer interface."""
 
 from __future__ import annotations
+
 from enum import Enum
+
 from laakhay.quantlab.backend import get_backend
-from ..market import MarketData
+
 from ..greeks import Greeks
+from ..market import MarketData
 from .black_scholes import BlackScholesPricer
 from .monte_carlo import MonteCarloPricer
 
@@ -20,16 +23,23 @@ class PricingMethod(Enum):
 class Pricer:
     """Unified interface for option pricing."""
 
-    def __init__(self, method: PricingMethod = PricingMethod.AUTO, backend=None):
-        self.backend = backend or get_backend()
+    def __init__(
+        self,
+        method: PricingMethod = PricingMethod.AUTO,
+        backend=None,
+        market: MarketData | None = None,
+    ):
+
+        self.backend = get_backend(backend)
         self.method = method
-        self._bs_pricer = BlackScholesPricer(backend=self.backend)
+        self.market = market
+        self._bs_pricer = BlackScholesPricer(backend=self.backend, market=self.market)
         self._mc_pricer = None  # Lazy init
 
     @property
     def mc_pricer(self):
         if self._mc_pricer is None:
-            self._mc_pricer = MonteCarloPricer(backend=self.backend)
+            self._mc_pricer = MonteCarloPricer(backend=self.backend, market=self.market)
         return self._mc_pricer
 
     def _select_pricer(self, option):
@@ -39,9 +49,10 @@ class Pricer:
         if self.method == PricingMethod.MONTE_CARLO:
             return self.mc_pricer
 
-        # AUTO logic: try BS first (analytical), then MC
-        if self._bs_pricer.supports(option):
+        # AUTO logic: try BS only if analytic support exists
+        if getattr(option, "is_analytic", False) and self._bs_pricer.supports(option):
             return self._bs_pricer
+
         return self.mc_pricer
 
     def price(self, option, market: MarketData | None = None) -> object:

@@ -134,6 +134,9 @@ class NumpyBackend(AbstractBackend):
     def is_array(self, obj: any) -> bool:
         return isinstance(obj, np.ndarray)
 
+    def item(self, a: Array) -> float | int | bool:
+        return a.item()
+
     def to_numpy(self, a: Array) -> Array:
         return a
 
@@ -208,6 +211,24 @@ class NumpyBackend(AbstractBackend):
 
     def expand_dims(self, a: Array, axis: int) -> Array:
         return np.expand_dims(a, axis=axis)
+
+    def cumsum(self, a: Array, axis: int | None = None) -> Array:
+        return np.cumsum(a, axis=axis)
+
+    def any(self, a: Array, axis: Axis = None, keepdims: bool = False) -> Array:
+        return np.any(a, axis=axis, keepdims=keepdims)
+
+    def all(self, a: Array, axis: Axis = None, keepdims: bool = False) -> Array:
+        return np.all(a, axis=axis, keepdims=keepdims)
+
+    def logical_not(self, a: Array) -> Array:
+        return np.logical_not(a)
+
+    def logical_and(self, a: Array, b: Array) -> Array:
+        return np.logical_and(a, b)
+
+    def logical_or(self, a: Array, b: Array) -> Array:
+        return np.logical_or(a, b)
 
     def take(self, a: Array, indices: Array, axis: int | None = None) -> Array:
         return np.take(a, indices, axis=axis)

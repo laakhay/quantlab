@@ -1,10 +1,10 @@
 """Black-Scholes analytical formulas for European options."""
 
-from ....market import MarketData
 from ....greeks import Greeks
+from ....market import MarketData
 from ....options import EuropeanCall, EuropeanPut
+from ..calculations import _normal_pdf, compute_d1_d2, compute_discount_factor
 from ..registry import PricingFormula
-from ..calculations import compute_d1_d2, compute_discount_factor, _normal_pdf
 
 
 class EuropeanGreeks:
@@ -24,7 +24,7 @@ class EuropeanGreeks:
             zero = backend.zeros_like(delta) if hasattr(backend, "zeros_like") else 0.0
             return Greeks(delta=delta, gamma=zero, vega=zero, theta=zero, rho=zero)
 
-        sqrt_T = backend.sqrt(backend.convert(option.expiry))
+        sqrt_T = backend.sqrt(backend.array(option.expiry))
         discount = compute_discount_factor(option.expiry, market)
 
         phi_d1 = _normal_pdf(d1, backend)

@@ -1,8 +1,9 @@
 """Digital option contracts."""
 
 from dataclasses import dataclass
-from .base import PathIndependentOption, Side, PayoffType
+
 from ..utils import infer_backend
+from .base import PathIndependentOption, PayoffType, Side
 
 
 @dataclass(frozen=True)
@@ -21,11 +22,11 @@ class DigitalCall(PathIndependentOption):
 
     @infer_backend
     def payoff(self, spot_prices, backend=None):
-        spot_prices = backend.convert(spot_prices)
-        strike = backend.convert(self.strike)
+        spot_prices = backend.array(spot_prices)
+        strike = backend.array(self.strike)
         cond = backend.greater(spot_prices, strike)
-        payout = backend.convert(self.payout)
-        zero = backend.convert(0.0)
+        payout = backend.array(self.payout)
+        zero = backend.array(0.0)
         return backend.where(cond, payout, zero)
 
     def intrinsic_value(self, spot: float) -> float:
@@ -48,11 +49,11 @@ class DigitalPut(PathIndependentOption):
 
     @infer_backend
     def payoff(self, spot_prices, backend=None):
-        spot_prices = backend.convert(spot_prices)
-        strike = backend.convert(self.strike)
+        spot_prices = backend.array(spot_prices)
+        strike = backend.array(self.strike)
         cond = backend.less(spot_prices, strike)
-        payout = backend.convert(self.payout)
-        zero = backend.convert(0.0)
+        payout = backend.array(self.payout)
+        zero = backend.array(0.0)
         return backend.where(cond, payout, zero)
 
     def intrinsic_value(self, spot: float) -> float:

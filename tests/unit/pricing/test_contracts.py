@@ -4,26 +4,19 @@ Tests all contract types, payoffs, properties, and edge cases.
 """
 
 import pytest
-import numpy as np
 
 from laakhay.quantlab.backend import get_backend
 from laakhay.quantlab.pricing.options import (
-    EuropeanCall,
-    EuropeanPut,
     DigitalCall,
     DigitalPut,
+    DownAndInPut,
+    EuropeanCall,
+    EuropeanPut,
     GeometricAsianCall,
     GeometricAsianPut,
-    UpAndOutCall,
-    UpAndInCall,
-    DownAndOutCall,
-    DownAndInCall,
-    UpAndOutPut,
-    UpAndInPut,
-    DownAndOutPut,
-    DownAndInPut,
-    Side,
     PayoffType,
+    Side,
+    UpAndOutCall,
 )
 
 
@@ -44,7 +37,7 @@ class TestEuropeanOptions:
         ]
 
         for spot, expected in scenarios:
-            path = backend.convert([[spot]])
+            path = backend.array([[spot]])
             payoff = backend.item(call(path, backend=backend))
             assert abs(payoff - expected) < 1e-10
 
@@ -62,7 +55,7 @@ class TestEuropeanOptions:
         ]
 
         for spot, expected in scenarios:
-            path = backend.convert([[spot]])
+            path = backend.array([[spot]])
             payoff = backend.item(put(path, backend=backend))
             assert abs(payoff - expected) < 1e-10
 
@@ -78,7 +71,7 @@ class TestEuropeanOptions:
         spots = [80.0, 90.0, 100.0, 110.0, 120.0]
 
         for spot in spots:
-            path = backend.convert([[spot]])
+            path = backend.array([[spot]])
             call_payoff = backend.item(call(path, backend=backend))
             put_payoff = backend.item(put(path, backend=backend))
 
@@ -92,7 +85,7 @@ class TestEuropeanOptions:
         backend = get_backend("numpy")
         call = EuropeanCall(strike=100.0, expiry=1.0)
 
-        spots = backend.convert([[80.0], [90.0], [100.0], [110.0], [120.0]])
+        spots = backend.array([[80.0], [90.0], [100.0], [110.0], [120.0]])
         payoffs = call(spots, backend=backend)
 
         assert backend.shape(payoffs) == (5,)
@@ -122,7 +115,7 @@ class TestDigitalOptions:
         ]
 
         for spot, expected in scenarios:
-            path = backend.convert([[spot]])
+            path = backend.array([[spot]])
             payoff = backend.item(digital_call(path, backend=backend))
             assert abs(payoff - expected) < 1e-10
 
@@ -142,7 +135,7 @@ class TestDigitalOptions:
         ]
 
         for spot, expected in scenarios:
-            path = backend.convert([[spot]])
+            path = backend.array([[spot]])
             payoff = backend.item(digital_put(path, backend=backend))
             assert abs(payoff - expected) < 1e-10
 
@@ -157,7 +150,7 @@ class TestAsianOptions:
 
         # Path: [100, 105, 110]
         # Geometric mean = (100 * 105 * 110)^(1/3) ≈ 104.915
-        path = backend.convert([[100.0, 105.0, 110.0]])
+        path = backend.array([[100.0, 105.0, 110.0]])
 
         asian_call = GeometricAsianCall(strike=strike, expiry=1.0)
         payoff = backend.item(asian_call(path, backend=backend))
@@ -172,7 +165,7 @@ class TestAsianOptions:
         strike = 110.0
 
         # Path where geometric mean < strike
-        path = backend.convert([[100.0, 105.0, 108.0]])
+        path = backend.array([[100.0, 105.0, 108.0]])
 
         asian_put = GeometricAsianPut(strike=strike, expiry=1.0)
         payoff = backend.item(asian_put(path, backend=backend))
@@ -188,7 +181,7 @@ class TestAsianOptions:
         strike = 100.0
 
         # Single observation should equal European payoff
-        path = backend.convert([[105.0]])
+        path = backend.array([[105.0]])
 
         asian_call = GeometricAsianCall(strike=strike, expiry=1.0)
         european_call = EuropeanCall(strike=strike, expiry=1.0)
@@ -209,7 +202,7 @@ class TestBarrierOptions:
         barrier = 120.0
 
         # Path stays below barrier
-        path = backend.convert([[100.0, 105.0, 115.0]])
+        path = backend.array([[100.0, 105.0, 115.0]])
 
         barrier_call = UpAndOutCall(strike=strike, expiry=1.0, barrier=barrier)
         payoff = backend.item(barrier_call(path, backend=backend))
@@ -225,7 +218,7 @@ class TestBarrierOptions:
         barrier = 115.0
 
         # Path breaches barrier
-        path = backend.convert([[100.0, 120.0, 110.0]])  # Breaches at second step
+        path = backend.array([[100.0, 120.0, 110.0]])  # Breaches at second step
 
         barrier_call = UpAndOutCall(strike=strike, expiry=1.0, barrier=barrier)
         payoff = backend.item(barrier_call(path, backend=backend))
@@ -240,7 +233,7 @@ class TestBarrierOptions:
         barrier = 90.0
 
         # Path stays above barrier
-        path = backend.convert([[100.0, 95.0, 92.0]])
+        path = backend.array([[100.0, 95.0, 92.0]])
 
         barrier_put = DownAndInPut(strike=strike, expiry=1.0, barrier=barrier)
         payoff = backend.item(barrier_put(path, backend=backend))
@@ -255,7 +248,7 @@ class TestBarrierOptions:
         barrier = 95.0
 
         # Path breaches barrier
-        path = backend.convert([[100.0, 90.0, 85.0]])  # Breaches at second step
+        path = backend.array([[100.0, 90.0, 85.0]])  # Breaches at second step
 
         barrier_put = DownAndInPut(strike=strike, expiry=1.0, barrier=barrier)
         payoff = backend.item(barrier_put(path, backend=backend))

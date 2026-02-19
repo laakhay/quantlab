@@ -1,30 +1,39 @@
 """Option contracts and strategy definitions."""
 
+from .asian import AsianCall, AsianPut, GeometricAsianCall, GeometricAsianPut
+from .barrier import (
+    BarrierDirection,
+    BarrierOption,
+    DownAndInCall,
+    DownAndInPut,
+    DownAndOutCall,
+    DownAndOutPut,
+    KnockType,
+    UpAndInCall,
+    UpAndInPut,
+    UpAndOutCall,
+    UpAndOutPut,
+)
 from .base import (
-    Side,
+    CashLeg,
+    OptionContract,
+    OptionLeg,
+    PathDependentOption,
+    PathIndependentOption,
     PayoffType,
     PositionType,
-    OptionContract,
-    PathIndependentOption,
-    PathDependentOption,
-    OptionLeg,
-    CashLeg,
+    Side,
 )
 from .contracts import EuropeanCall, EuropeanPut
 from .digital import DigitalCall, DigitalPut
-from .asian import AsianCall, AsianPut, GeometricAsianCall, GeometricAsianPut
-from .barrier import (
-    BarrierOption,
-    BarrierDirection,
-    KnockType,
-    UpAndOutCall,
-    UpAndInCall,
-    DownAndOutCall,
-    DownAndInCall,
-    UpAndOutPut,
-    UpAndInPut,
-    DownAndOutPut,
-    DownAndInPut,
+from .strategies import (
+    CompositeOptionContract,
+    butterfly_spread,
+    calendar_spread,
+    iron_condor,
+    straddle,
+    strangle,
+    vertical_spread,
 )
 
 __all__ = [
@@ -54,5 +63,13 @@ __all__ = [
     "UpAndOutPut",
     "UpAndInPut",
     "DownAndOutPut",
+    "DownAndOutPut",
     "DownAndInPut",
+    "CompositeOptionContract",
+    "vertical_spread",
+    "calendar_spread",
+    "butterfly_spread",
+    "straddle",
+    "strangle",
+    "iron_condor",
 ]

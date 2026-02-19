@@ -1,7 +1,8 @@
 """Utilities for pricing module."""
 
 from functools import wraps
-from laakhay.quantlab.backend import active_backend, infer_backend_from_arrays
+
+from laakhay.quantlab.backend import infer_backend_from_arrays
 
 
 def infer_backend(func):
