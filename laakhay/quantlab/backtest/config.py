@@ -70,6 +70,7 @@ class BacktestConfig:
     risk_free_rate: float = 0.0
     allow_entry_same_bar_as_exit: bool = False
     daily_loss_limit_pct: float | Decimal | None = None
+    execute_signals_on_next_bar_open: bool = True
 
     def __post_init__(self) -> None:
         if self.daily_loss_limit_pct is None:

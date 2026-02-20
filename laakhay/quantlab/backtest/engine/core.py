@@ -38,11 +38,26 @@ class PositionRuntimeState:
     entry_bar_index: int | None = None
     entry_commission: Decimal = Decimal("0")
     initial_stop: Decimal | None = None
+    initial_take_profit: Decimal | None = None
     initial_risk: Decimal | None = None
     breakeven_moved: bool = False
     last_exit_bar_index: int | None = None
     entries_day: Any = None
     entries_today: int = 0
+
+
+@dataclass
+class BarDiagnostic:
+    """Per-bar execution diagnostics for backtest debugging."""
+
+    timestamp: Any
+    position_open: bool
+    entry_signal_eval: bool
+    exit_on_expression_eval: bool
+    exit_on_sl_eval: bool
+    exit_on_tp_eval: bool
+    exit_on_max_time_eval: bool
+    exit_eval: bool
 
 
 class PortfolioProxy:
@@ -91,6 +106,8 @@ class BacktestEngine:
         self._session_day: Any = None
         self._day_start_equity = self.initial_capital
         self._daily_realized_pnl = Decimal("0")
+        self._pending_signals: list[Any] = []
+        self._bar_diagnostics: list[BarDiagnostic] = []
 
         self.config = config or BacktestConfig()
         self.commission_bps = Decimal(str(commission_bps))
@@ -115,7 +132,14 @@ class BacktestEngine:
             self._runtime[symbol] = state
         return state
 
-    def run(self, strategy: Any, feed: DataFeed) -> dict[str, Any]:
+    def run(
+        self,
+        strategy: Any,
+        feed: DataFeed,
+        *,
+        start_dt: Any | None = None,
+        end_dt: Any | None = None,
+    ) -> dict[str, Any]:
         """Run the backtest loop."""
         self.positions.clear()
         self.capital = self.initial_capital
@@ -129,19 +153,38 @@ class BacktestEngine:
         self._session_day = None
         self._day_start_equity = self.initial_capital
         self._daily_realized_pnl = Decimal("0")
+        self._pending_signals.clear()
+        self._bar_diagnostics.clear()
         self.oms = OrderManager()
         self.sizer = PositionSizer(self._get_capital)
 
         strategy.prepare(feed.symbol, feed.timeframe)
         required_lookback = self._resolve_required_lookback(strategy)
+        side_hint = str(getattr(strategy, "side", "")).lower()
+        entry_side_hint = OrderSide.BUY if side_hint == "long" else OrderSide.SELL if side_hint == "short" else None
+        exit_side_hint = (
+            OrderSide.SELL if side_hint == "long" else OrderSide.BUY if side_hint == "short" else None
+        )
 
-        for bar in feed.stream():
+        for bar in feed.stream(start_dt=start_dt, end_dt=end_dt):
             self._bar_index += 1
             self.current_time = bar.timestamp
             self.last_prices[feed.symbol] = Decimal(str(bar.close))
             self._roll_session_day(bar.timestamp)
+            entry_signal_eval = False
+            exit_on_expression_eval = False
 
-            # 1) Match pending exit orders.
+            # 1) Execute queued discretionary signals at the next bar open.
+            if self.config.execute_signals_on_next_bar_open:
+                self._execute_pending_signals_at_open(bar.open)
+
+            exit_on_sl_eval, exit_on_tp_eval = self._evaluate_protective_exit_hits(
+                feed.symbol, bar
+            )
+
+            # 2) Match pending exit orders.
+            # In next-open mode, this allows newly-opened positions to hit SL/TP
+            # on the same candle via intrabar high/low checks.
             filled_orders = self.oms.match_orders(bar, feed.symbol)
             for order, fill_price in filled_orders:
                 trade = self._execute_trade(
@@ -161,11 +204,16 @@ class BacktestEngine:
                 if trade and order.label in {"SL", "TP"}:
                     self.oms.cancel_symbol_orders(order.symbol)
 
-            # 2) Time exits and stop adjustments (e.g., breakeven).
+            # Defensive fallback: if an exit level was touched but an OMS fill
+            # was missed/rejected, enforce closure from active protective orders.
+            self._apply_protective_exit_fallback(feed.symbol, bar)
+
+            # 3) Time exits and stop adjustments (e.g., breakeven).
+            exit_on_max_time_eval = self._is_time_exit_due(feed.symbol)
             self._apply_time_exit(feed.symbol, Decimal(str(bar.close)))
             self._apply_breakeven(feed.symbol, Decimal(str(bar.close)))
 
-            # 3) Build context and evaluate strategy.
+            # 4) Build context and evaluate strategy.
             market_data: Dataset = feed.get_history(feed.symbol, lookback=required_lookback)
             series = market_data.series(feed.symbol, feed.timeframe, source="ohlcv")
             if series and len(series) >= required_lookback:
@@ -181,10 +229,50 @@ class BacktestEngine:
                     )
                     for signal in signals:
                         if signal is not None:
-                            self._process_signal(signal, bar.close)
+                            if signal.side == entry_side_hint:
+                                entry_signal_eval = True
+                            elif signal.side == exit_side_hint:
+                                exit_on_expression_eval = True
+                            elif entry_side_hint is None or exit_side_hint is None:
+                                pos_for_eval = self.positions.get(
+                                    feed.symbol, Position(symbol=feed.symbol)
+                                )
+                                if pos_for_eval.is_flat:
+                                    entry_signal_eval = True
+                                elif (
+                                    (pos_for_eval.is_long and signal.side == OrderSide.SELL)
+                                    or (pos_for_eval.is_short and signal.side == OrderSide.BUY)
+                                ):
+                                    exit_on_expression_eval = True
+                                else:
+                                    entry_signal_eval = True
+                            if self.config.execute_signals_on_next_bar_open:
+                                self._pending_signals.append(signal)
+                            else:
+                                self._process_signal(signal, bar.close)
 
-            # 4) Record equity snapshot.
+            # 5) Record equity snapshot.
             self.history.append(PortfolioPoint(timestamp=bar.timestamp, equity=self.current_equity))
+            position = self.positions.get(feed.symbol)
+            position_open = position is not None and not position.is_flat
+            exit_eval = (
+                exit_on_expression_eval
+                or exit_on_sl_eval
+                or exit_on_tp_eval
+                or exit_on_max_time_eval
+            )
+            self._bar_diagnostics.append(
+                BarDiagnostic(
+                    timestamp=bar.timestamp,
+                    position_open=position_open,
+                    entry_signal_eval=entry_signal_eval,
+                    exit_on_expression_eval=exit_on_expression_eval,
+                    exit_on_sl_eval=exit_on_sl_eval,
+                    exit_on_tp_eval=exit_on_tp_eval,
+                    exit_on_max_time_eval=exit_on_max_time_eval,
+                    exit_eval=exit_eval,
+                )
+            )
 
         return self._generate_report()
 
@@ -238,24 +326,54 @@ class BacktestEngine:
                 runtime.entries_day = self._session_day
                 runtime.entries_today = 0
             if runtime.entries_today >= max_entries_per_day:
+                with open("debug_log.txt", "a") as f:
+                    f.write(f"DEBUG: Rejected entry max entries. Today {runtime.entries_today} Max {max_entries_per_day}\n")
                 return False
 
         last_exit = runtime.last_exit_bar_index
         if last_exit is None:
             return True
-        if not self.config.allow_entry_same_bar_as_exit and self._bar_index == last_exit:
-            return False
+        if self.config.allow_entry_same_bar_as_exit:
+             pass
+        elif self._bar_index == last_exit:
+             with open("debug_log.txt", "a") as f:
+                 f.write(f"DEBUG: Rejected entry same bar exit. Bar {self._bar_index} LastExit {last_exit}\n")
+             return False
+
         cooldown = self.config.frequency.cooldown_bars
-        return not (cooldown > 0 and (self._bar_index - last_exit) <= cooldown)
+        if cooldown > 0 and (self._bar_index - last_exit) <= cooldown:
+            with open("debug_log.txt", "a") as f:
+                f.write(f"DEBUG: Rejected entry cooldown. Bar {self._bar_index} LastExit {last_exit} Cooldown {cooldown}\n")
+            return False
+            
+        return True
 
     def _can_discretionary_exit(self, symbol: str) -> bool:
+        runtime = self._runtime_state(symbol)
+        if (
+            self.config.execute_signals_on_next_bar_open
+            and runtime.entry_bar_index is not None
+            and runtime.entry_bar_index == self._bar_index
+        ):
+            # In next-open mode, never allow an entry and discretionary exit
+            # on the same bar.
+            return False
+
         min_hold = self.config.frequency.min_hold_bars
         if min_hold <= 0:
             return True
-        runtime = self._runtime_state(symbol)
         if runtime.entry_bar_index is None:
             return True
         return (self._bar_index - runtime.entry_bar_index) >= min_hold
+
+    def _execute_pending_signals_at_open(self, open_price: Any) -> None:
+        if not self._pending_signals:
+            return
+        pending = self._pending_signals
+        self._pending_signals = []
+        for signal in pending:
+            if signal is not None:
+                self._process_signal(signal, open_price)
 
     def _process_signal(self, signal: Any, current_price: Any) -> None:
         """Process a Signal object."""
@@ -270,6 +388,8 @@ class BacktestEngine:
         pos = self.positions.get(symbol, Position(symbol=symbol))
 
         if signal.side == OrderSide.BUY:
+            with open("debug_log.txt", "a") as f:
+                 f.write(f"DEBUG: Processing BUY. Bar {self._bar_index}. Pos {pos}. Flat? {pos.is_flat}\n")
             if pos.is_flat:
                 if not self._can_enter(symbol, OrderSide.BUY):
                     return
@@ -323,6 +443,7 @@ class BacktestEngine:
         oco_group_id = f"OCO-{symbol}-{entry_trade.id}"
 
         sl_price: Decimal | None = None
+        tp_price: Decimal | None = None
         if signal.sl is not None:
             try:
                 sl_price = self._parse_price(
@@ -364,6 +485,9 @@ class BacktestEngine:
                 )
 
         runtime = self._runtime_state(symbol)
+        entry_trade.sl_price = sl_price
+        entry_trade.tp_price = tp_price
+        runtime.initial_take_profit = tp_price
         if sl_price is None:
             runtime.initial_stop = None
             runtime.initial_risk = None
@@ -449,6 +573,107 @@ class BacktestEngine:
             if updated:
                 runtime.breakeven_moved = True
 
+    def _evaluate_protective_exit_hits(self, symbol: str, bar: Any) -> tuple[bool, bool]:
+        pos = self.positions.get(symbol)
+        if pos is None or pos.is_flat:
+            return False, False
+
+        sl_hit = False
+        sl_order = self.oms.find_active_order(symbol, "SL")
+        if sl_order and sl_order.price is not None:
+            if sl_order.side == OrderSide.SELL:
+                sl_hit = bar.low <= sl_order.price
+            else:
+                sl_hit = bar.high >= sl_order.price
+
+        tp_hit = False
+        tp_order = self.oms.find_active_order(symbol, "TP")
+        if tp_order and tp_order.price is not None:
+            if tp_order.side == OrderSide.SELL:
+                tp_hit = bar.high >= tp_order.price
+            else:
+                tp_hit = bar.low <= tp_order.price
+
+        return sl_hit, tp_hit
+
+    def _is_time_exit_due(self, symbol: str) -> bool:
+        max_bars = self.config.frequency.max_bars_in_trade
+        if max_bars is None:
+            return False
+        pos = self.positions.get(symbol)
+        if pos is None or pos.is_flat:
+            return False
+        runtime = self._runtime_state(symbol)
+        if runtime.entry_bar_index is None:
+            return False
+        held_bars = self._bar_index - runtime.entry_bar_index
+        return held_bars >= max_bars
+
+    def _apply_protective_exit_fallback(self, symbol: str, bar: Any) -> None:
+        pos = self.positions.get(symbol)
+        if pos is None or pos.is_flat:
+            return
+
+        sl_order = self.oms.find_active_order(symbol, "SL")
+        tp_order = self.oms.find_active_order(symbol, "TP")
+        sl_price = sl_order.price if sl_order and sl_order.price is not None else None
+        tp_price = tp_order.price if tp_order and tp_order.price is not None else None
+        if sl_price is None and tp_price is None:
+            return
+
+        if pos.is_long:
+            sl_hit = sl_price is not None and bar.low <= sl_price
+            tp_hit = tp_price is not None and bar.high >= tp_price
+            if not sl_hit and not tp_hit:
+                return
+            if sl_hit and tp_hit:
+                # Conservative tie-break for long exits.
+                if tp_price is None or (sl_price is not None and sl_price <= tp_price):
+                    reason = "STOP_LOSS"
+                    exit_price = sl_price
+                else:
+                    reason = "TAKE_PROFIT"
+                    exit_price = tp_price
+            elif sl_hit:
+                reason = "STOP_LOSS"
+                exit_price = sl_price
+            else:
+                reason = "TAKE_PROFIT"
+                exit_price = tp_price
+            exit_side = OrderSide.SELL
+        else:
+            sl_hit = sl_price is not None and bar.high >= sl_price
+            tp_hit = tp_price is not None and bar.low <= tp_price
+            if not sl_hit and not tp_hit:
+                return
+            if sl_hit and tp_hit:
+                # Conservative tie-break for short exits.
+                if sl_price is None or (tp_price is not None and sl_price < tp_price):
+                    reason = "TAKE_PROFIT"
+                    exit_price = tp_price
+                else:
+                    reason = "STOP_LOSS"
+                    exit_price = sl_price
+            elif sl_hit:
+                reason = "STOP_LOSS"
+                exit_price = sl_price
+            else:
+                reason = "TAKE_PROFIT"
+                exit_price = tp_price
+            exit_side = OrderSide.BUY
+
+        if exit_price is None:
+            return
+        trade = self._execute_trade(
+            symbol,
+            exit_side,
+            pos.abs_qty,
+            exit_price,
+            exit_reason=reason,
+        )
+        if trade:
+            self.oms.cancel_symbol_orders(symbol)
+
     def _parse_price(
         self, val: str | Decimal, entry_price: Decimal, is_sl: bool, side: OrderSide
     ) -> Decimal:
@@ -517,14 +742,22 @@ class BacktestEngine:
         if fill_price <= 0:
             return None
 
+        # Cash guardrail for long entries.
+        # If requested qty is slightly over affordable due to commission/slippage,
+        # clip to max affordable rather than rejecting the signal entirely.
+        if side == OrderSide.BUY and current_qty >= 0:
+            fee_fraction = self.commission_bps / self._BPS_SCALE
+            denom = fill_price * (Decimal("1") + fee_fraction)
+            if denom <= 0:
+                return None
+            max_affordable_qty = self.capital / denom
+            if max_affordable_qty <= 0:
+                return None
+            if qty_dec > max_affordable_qty:
+                qty_dec = max_affordable_qty
+
         notional = qty_dec * fill_price
         commission = (notional * self.commission_bps) / self._BPS_SCALE
-
-        # Cash guardrail for long entries.
-        if side == OrderSide.BUY and current_qty >= 0:
-            total_cost = notional + commission
-            if total_cost > self.capital:
-                return None
 
         if order_id is None:
             order_id = f"O-{len(self.oms.orders_history) + 1}"
@@ -585,6 +818,7 @@ class BacktestEngine:
             runtime.entry_bar_index = self._bar_index
             runtime.entry_commission = trade.commission
             runtime.initial_stop = None
+            runtime.initial_take_profit = None
             runtime.initial_risk = None
             runtime.breakeven_moved = False
             return
@@ -606,6 +840,7 @@ class BacktestEngine:
             runtime.entry_bar_index = None
             runtime.entry_commission = Decimal("0")
             runtime.initial_stop = None
+            runtime.initial_take_profit = None
             runtime.initial_risk = None
             runtime.breakeven_moved = False
 
@@ -671,6 +906,16 @@ class BacktestEngine:
                 entry_time=runtime.entry_time,
                 exit_time=exit_trade.timestamp,
                 exit_reason=exit_reason,
+                sl_price=(
+                    float(runtime.initial_stop)
+                    if runtime.initial_stop is not None
+                    else None
+                ),
+                tp_price=(
+                    float(runtime.initial_take_profit)
+                    if runtime.initial_take_profit is not None
+                    else None
+                ),
             )
         )
         return net_pnl
@@ -732,9 +977,37 @@ class BacktestEngine:
             "unrealized_pnl": unrealized_pnl,
             "pnl": pnl,
             "total_trades": len(self.trades),
+            "trades": [
+                {
+                    "id": trade.id,
+                    "order_id": trade.order_id,
+                    "symbol": trade.symbol,
+                    "side": trade.side,
+                    "qty": trade.qty,
+                    "price": trade.price,
+                    "commission": trade.commission,
+                    "sl_price": trade.sl_price,
+                    "tp_price": trade.tp_price,
+                    "timestamp": trade.timestamp,
+                }
+                for trade in self.trades
+            ],
             "positions": self.positions,
             "open_positions": open_positions,
             "equity_curve": [{"timestamp": p.timestamp, "equity": p.equity} for p in self.history],
+            "bar_diagnostics": [
+                {
+                    "timestamp": point.timestamp,
+                    "position_open": point.position_open,
+                    "entry_signal_eval": point.entry_signal_eval,
+                    "exit_on_expression_eval": point.exit_on_expression_eval,
+                    "exit_on_sl_eval": point.exit_on_sl_eval,
+                    "exit_on_tp_eval": point.exit_on_tp_eval,
+                    "exit_on_max_time_eval": point.exit_on_max_time_eval,
+                    "exit_eval": point.exit_eval,
+                }
+                for point in self._bar_diagnostics
+            ],
             "round_trips": [trade.__dict__ for trade in self.closed_trades],
             "performance": performance.to_dict(),
             "trade_metrics": trade_metrics.to_dict(),

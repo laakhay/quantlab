@@ -18,4 +18,6 @@ class Trade:
     qty: Decimal
     price: Decimal
     commission: Decimal = Decimal("0")
+    sl_price: Decimal | None = None
+    tp_price: Decimal | None = None
     timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))

@@ -21,6 +21,8 @@ class RoundTripTrade:
     entry_time: datetime | None = None
     exit_time: datetime | None = None
     exit_reason: str | None = None
+    sl_price: float | None = None
+    tp_price: float | None = None
 
 
 @dataclass(frozen=True)
