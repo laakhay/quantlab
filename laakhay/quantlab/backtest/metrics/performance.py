@@ -62,8 +62,20 @@ def compute_annualized_return(
     if start <= 0:
         return None
     periods = len(values) - 1
+    if periods <= 0 or periods_per_year <= 0:
+        return None
+    ratio = end / start
+    if ratio <= 0:
+        return None
     exponent = periods_per_year / periods
-    return (end / start) ** exponent - 1.0
+    # Use log-space math for numerical stability on high-frequency/short windows.
+    power_log = exponent * math.log(ratio)
+    # Prevent overflow in exp for extreme annualization factors.
+    if power_log >= 709.0:
+        return float("inf")
+    if power_log <= -745.0:
+        return -1.0
+    return math.exp(power_log) - 1.0
 
 
 def compute_annualized_volatility(

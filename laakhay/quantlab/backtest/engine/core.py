@@ -161,9 +161,19 @@ class BacktestEngine:
         strategy.prepare(feed.symbol, feed.timeframe)
         required_lookback = self._resolve_required_lookback(strategy)
         side_hint = str(getattr(strategy, "side", "")).lower()
-        entry_side_hint = OrderSide.BUY if side_hint == "long" else OrderSide.SELL if side_hint == "short" else None
+        entry_side_hint = (
+            OrderSide.BUY
+            if side_hint == "long"
+            else OrderSide.SELL
+            if side_hint == "short"
+            else None
+        )
         exit_side_hint = (
-            OrderSide.SELL if side_hint == "long" else OrderSide.BUY if side_hint == "short" else None
+            OrderSide.SELL
+            if side_hint == "long"
+            else OrderSide.BUY
+            if side_hint == "short"
+            else None
         )
 
         for bar in feed.stream(start_dt=start_dt, end_dt=end_dt):
@@ -178,9 +188,7 @@ class BacktestEngine:
             if self.config.execute_signals_on_next_bar_open:
                 self._execute_pending_signals_at_open(bar.open)
 
-            exit_on_sl_eval, exit_on_tp_eval = self._evaluate_protective_exit_hits(
-                feed.symbol, bar
-            )
+            exit_on_sl_eval, exit_on_tp_eval = self._evaluate_protective_exit_hits(feed.symbol, bar)
 
             # 2) Match pending exit orders.
             # In next-open mode, this allows newly-opened positions to hit SL/TP
@@ -239,9 +247,8 @@ class BacktestEngine:
                                 )
                                 if pos_for_eval.is_flat:
                                     entry_signal_eval = True
-                                elif (
-                                    (pos_for_eval.is_long and signal.side == OrderSide.SELL)
-                                    or (pos_for_eval.is_short and signal.side == OrderSide.BUY)
+                                elif (pos_for_eval.is_long and signal.side == OrderSide.SELL) or (
+                                    pos_for_eval.is_short and signal.side == OrderSide.BUY
                                 ):
                                     exit_on_expression_eval = True
                                 else:
@@ -326,27 +333,18 @@ class BacktestEngine:
                 runtime.entries_day = self._session_day
                 runtime.entries_today = 0
             if runtime.entries_today >= max_entries_per_day:
-                with open("debug_log.txt", "a") as f:
-                    f.write(f"DEBUG: Rejected entry max entries. Today {runtime.entries_today} Max {max_entries_per_day}\n")
                 return False
 
         last_exit = runtime.last_exit_bar_index
         if last_exit is None:
             return True
         if self.config.allow_entry_same_bar_as_exit:
-             pass
+            pass
         elif self._bar_index == last_exit:
-             with open("debug_log.txt", "a") as f:
-                 f.write(f"DEBUG: Rejected entry same bar exit. Bar {self._bar_index} LastExit {last_exit}\n")
-             return False
+            return False
 
         cooldown = self.config.frequency.cooldown_bars
-        if cooldown > 0 and (self._bar_index - last_exit) <= cooldown:
-            with open("debug_log.txt", "a") as f:
-                f.write(f"DEBUG: Rejected entry cooldown. Bar {self._bar_index} LastExit {last_exit} Cooldown {cooldown}\n")
-            return False
-            
-        return True
+        return not (cooldown > 0 and (self._bar_index - last_exit) <= cooldown)
 
     def _can_discretionary_exit(self, symbol: str) -> bool:
         runtime = self._runtime_state(symbol)
@@ -388,8 +386,6 @@ class BacktestEngine:
         pos = self.positions.get(symbol, Position(symbol=symbol))
 
         if signal.side == OrderSide.BUY:
-            with open("debug_log.txt", "a") as f:
-                 f.write(f"DEBUG: Processing BUY. Bar {self._bar_index}. Pos {pos}. Flat? {pos.is_flat}\n")
             if pos.is_flat:
                 if not self._can_enter(symbol, OrderSide.BUY):
                     return
@@ -907,9 +903,7 @@ class BacktestEngine:
                 exit_time=exit_trade.timestamp,
                 exit_reason=exit_reason,
                 sl_price=(
-                    float(runtime.initial_stop)
-                    if runtime.initial_stop is not None
-                    else None
+                    float(runtime.initial_stop) if runtime.initial_stop is not None else None
                 ),
                 tp_price=(
                     float(runtime.initial_take_profit)

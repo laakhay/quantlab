@@ -157,7 +157,9 @@ class TestBacktestEngineRobustness:
         strategy = SequenceSignalsStrategy(
             [
                 [
-                    Signal(symbol="BTCUSDT", side=OrderSide.BUY, type=OrderType.MARKET, size="1000"),
+                    Signal(
+                        symbol="BTCUSDT", side=OrderSide.BUY, type=OrderType.MARKET, size="1000"
+                    ),
                     Signal(symbol="BTCUSDT", side=OrderSide.SELL, type=OrderType.MARKET),
                 ],
             ]
@@ -525,7 +527,7 @@ class TestBacktestEngineRobustness:
         )
         feed = MemDataFeed(bars, symbol="BTCUSDT", timeframe="1h")
         strategy = OneShotEntryStrategy(size="1000", sl=Decimal("95"))
-        monkeypatch.setattr(OrderManager, "match_orders", lambda self, bar, symbol: [])
+        monkeypatch.setattr(OrderManager, "match_orders", lambda *_args, **_kwargs: [])
         engine = BacktestEngine(initial_capital=5000)
 
         results = engine.run(strategy, feed)
