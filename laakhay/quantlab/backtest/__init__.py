@@ -8,6 +8,7 @@ from .config import (
 from .engine import BacktestEngine
 from .feed import DataFeed, MemDataFeed
 from .models import (
+    Bar,
     Order,
     OrderSide,
     OrderStatus,
@@ -25,6 +26,7 @@ __all__ = [
     "DataFeed",
     "MemDataFeed",
     "Strategy",
+    "Bar",
     "Order",
     "OrderSide",
     "OrderType",

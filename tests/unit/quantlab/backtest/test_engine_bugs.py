@@ -6,7 +6,6 @@ Verifies that SL/TP and Max Bars limits actually close trades and free up the en
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
-from laakhay.data.models.bar import Bar
 from laakhay.quantlab.backtest import (
     BacktestConfig,
     BacktestEngine,
@@ -17,6 +16,7 @@ from laakhay.quantlab.backtest import (
     Signal,
     Strategy,
 )
+from laakhay.quantlab.backtest.models import Bar
 
 
 def create_ohlcv_bars(prices, start_time):

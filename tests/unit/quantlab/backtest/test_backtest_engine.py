@@ -5,7 +5,6 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from decimal import Decimal
 
-from laakhay.data.models.bar import Bar
 from laakhay.quantlab.backtest import (
     BacktestConfig,
     BacktestEngine,
@@ -16,7 +15,7 @@ from laakhay.quantlab.backtest import (
     TradeDirectionMode,
 )
 from laakhay.quantlab.backtest.engine.oms import OrderManager
-from laakhay.quantlab.backtest.models import OrderSide, OrderType, Signal
+from laakhay.quantlab.backtest.models import Bar, OrderSide, OrderType, Signal
 
 
 def _bars(closes: list[str | int]) -> list[Bar]:
@@ -235,7 +234,7 @@ class TestBacktestEngineRobustness:
         assert engine.trades[0].timestamp >= start_dt
 
     def test_ta_strategy_exposes_required_lookback(self):
-        strategy = Strategy(entry_signal="sma(20) > sma(50)")
+        strategy = Strategy(required_lookback=50)
 
         assert strategy.required_lookback() >= 50
 

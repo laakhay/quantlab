@@ -26,10 +26,7 @@ classifiers = [
 ]
 
 # Runtime dependencies
-dependencies = [
-    "laakhay-data",
-    "laakhay-ta",
-]
+dependencies = []
 
 [project.optional-dependencies]
 numpy = ["numpy>=1.21.0", "scipy>=1.10.0"]

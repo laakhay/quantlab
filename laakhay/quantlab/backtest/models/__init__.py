@@ -1,5 +1,4 @@
-from laakhay.data.models.bar import Bar
-
+from .bar import Bar
 from .order import Order, OrderSide, OrderStatus, OrderType
 from .position import Position
 from .signal import RiskType, Signal, SLTPType

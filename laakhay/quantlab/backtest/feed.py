@@ -2,9 +2,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from datetime import datetime
 
-from laakhay.data.models.bar import Bar
-from laakhay.ta.core.dataset import Dataset
-from laakhay.ta.core.ohlcv import OHLCV
+from .models import Bar
 
 
 class DataFeed(ABC):
@@ -18,11 +16,8 @@ class DataFeed(ABC):
         pass
 
     @abstractmethod
-    def get_history(self, symbol: str, lookback: int) -> Dataset:
-        """Get historical data for a symbol up to the current point in stream.
-
-        This is crucial for feeding the Strategy Engine without lookahead bias.
-        """
+    def get_history(self, symbol: str, lookback: int) -> list[Bar]:
+        """Get historical bars up to the current point in stream."""
         pass
 
 
@@ -51,40 +46,18 @@ class MemDataFeed(DataFeed):
             self._current_idx = i
             yield bar
 
-    def get_history(self, symbol: str, lookback: int) -> Dataset:
+    def get_history(self, symbol: str, lookback: int) -> list[Bar]:
         """Get history up to current_idx."""
         if symbol != self.symbol:
             # In a multi-asset feed, we'd handle this differently
-            return Dataset()
+            return []
 
         if self._current_idx < 0:
-            return Dataset()
+            return []
 
         # simple slice: max(0, current - lookback + 1) : current + 1
         start = max(0, self._current_idx - lookback + 1)
         end = self._current_idx + 1
 
         sliced_bars = self.bars[start:end]
-        if not sliced_bars:
-            return Dataset()
-
-        # Convert to TA OHLCV
-        # Direct construction to handle attribute mismatch (Bar.timestamp vs Bar.ts)
-        ohlcv = OHLCV(
-            timestamps=tuple(b.timestamp for b in sliced_bars),
-            opens=tuple(b.open for b in sliced_bars),
-            highs=tuple(b.high for b in sliced_bars),
-            lows=tuple(b.low for b in sliced_bars),
-            closes=tuple(b.close for b in sliced_bars),
-            volumes=tuple(b.volume for b in sliced_bars),
-            is_closed=tuple(b.is_closed for b in sliced_bars),
-            symbol=self.symbol,
-            timeframe=self.timeframe,
-        )
-
-        # Wrap in Dataset
-        # Note: We create a fresh dataset every step.
-        # Optimization: In Phase 2, we can use a rolling buffer or pre-calculated columns.
-        ds = Dataset()
-        ds.add_series(self.symbol, self.timeframe, ohlcv, source="ohlcv")
-        return ds
+        return sliced_bars

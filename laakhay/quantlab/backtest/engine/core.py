@@ -4,8 +4,6 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any
 
-from laakhay.ta.core.dataset import Dataset
-
 from ..config import BacktestConfig
 from ..feed import DataFeed
 from ..metrics import (
@@ -222,9 +220,8 @@ class BacktestEngine:
             self._apply_breakeven(feed.symbol, Decimal(str(bar.close)))
 
             # 4) Build context and evaluate strategy.
-            market_data: Dataset = feed.get_history(feed.symbol, lookback=required_lookback)
-            series = market_data.series(feed.symbol, feed.timeframe, source="ohlcv")
-            if series and len(series) >= required_lookback:
+            market_data = feed.get_history(feed.symbol, lookback=required_lookback)
+            if len(market_data) >= required_lookback:
                 try:
                     signal_or_list = strategy.on_bar(market_data, feed.symbol, feed.timeframe)
                 except Exception as e:  # pragma: no cover - strategy safety

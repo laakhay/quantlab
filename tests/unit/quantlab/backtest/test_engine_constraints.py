@@ -5,14 +5,13 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from decimal import Decimal
 
-from laakhay.data.models.bar import Bar
 from laakhay.quantlab.backtest import (
     BacktestConfig,
     BacktestEngine,
     FrequencyControl,
     MemDataFeed,
 )
-from laakhay.quantlab.backtest.models import OrderSide, OrderType, Signal
+from laakhay.quantlab.backtest.models import Bar, OrderSide, OrderType, Signal
 
 
 def _bars(closes: list[str | int], start_time: datetime | None = None) -> list[Bar]:
