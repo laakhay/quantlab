@@ -69,6 +69,39 @@ class OneShotEntryStrategy:
         ]
 
 
+class OneShotShortEntryStrategy:
+    """Emit one short signal and then stay flat."""
+
+    def __init__(
+        self, *, size: str = "500", sl: str | Decimal | None = None, tp: str | Decimal | None = None
+    ):
+        self._fired = False
+        self._size = size
+        self._sl = sl
+        self._tp = tp
+
+    def prepare(self, symbol: str, timeframe: str) -> None:
+        pass
+
+    def required_lookback(self) -> int:
+        return 2
+
+    def on_bar(self, dataset, symbol: str, timeframe: str):  # noqa: ANN001
+        if self._fired:
+            return []
+        self._fired = True
+        return [
+            Signal(
+                symbol=symbol,
+                side=OrderSide.SELL,
+                type=OrderType.MARKET,
+                size=self._size,
+                sl=self._sl,
+                tp=self._tp,
+            )
+        ]
+
+
 class EnterThenExitStrategy:
     """Emit a buy once, then an explicit sell once."""
 
@@ -150,6 +183,81 @@ class TestBacktestEngineRobustness:
         exit_trade = engine.trades[-1]
         assert exit_trade.side == OrderSide.SELL
         assert exit_trade.price == Decimal("95")
+
+    def test_sl_tp_double_trigger_can_use_optimistic_policy(self):
+        bars = _bars(["100", "100", "100"])
+        bars[2] = bars[2].model_copy(
+            update={
+                "high": Decimal("106"),
+                "low": Decimal("94"),
+                "close": Decimal("100"),
+            }
+        )
+
+        feed = MemDataFeed(bars, symbol="BTCUSDT", timeframe="1h")
+        strategy = OneShotEntryStrategy(size="1000", sl=Decimal("95"), tp=Decimal("105"))
+
+        engine = BacktestEngine(
+            initial_capital=5000,
+            config=BacktestConfig(protective_exit_policy="optimistic"),
+        )
+        results = engine.run(strategy, feed)
+
+        assert results["total_trades"] == 2
+        assert len(results["open_positions"]) == 0
+        exit_trade = engine.trades[-1]
+        assert exit_trade.side == OrderSide.SELL
+        assert exit_trade.price == Decimal("105")
+
+    def test_sl_tp_double_trigger_can_use_nearest_to_open_policy_long(self):
+        bars = _bars(["100", "100", "100"])
+        bars[2] = bars[2].model_copy(
+            update={
+                "open": Decimal("104"),
+                "high": Decimal("106"),
+                "low": Decimal("94"),
+                "close": Decimal("100"),
+            }
+        )
+
+        feed = MemDataFeed(bars, symbol="BTCUSDT", timeframe="1h")
+        strategy = OneShotEntryStrategy(size="1000", sl=Decimal("95"), tp=Decimal("105"))
+        engine = BacktestEngine(
+            initial_capital=5000,
+            config=BacktestConfig(protective_exit_policy="nearest_to_open"),
+        )
+
+        results = engine.run(strategy, feed)
+
+        assert results["total_trades"] == 2
+        assert len(results["open_positions"]) == 0
+        assert engine.trades[-1].side == OrderSide.SELL
+        assert engine.trades[-1].price == Decimal("105")
+
+    def test_sl_tp_double_trigger_can_use_nearest_to_open_policy_short(self):
+        bars = _bars(["100", "100", "100"])
+        bars[2] = bars[2].model_copy(
+            update={
+                "open": Decimal("96"),
+                "high": Decimal("106"),
+                "low": Decimal("94"),
+                "close": Decimal("100"),
+            }
+        )
+
+        feed = MemDataFeed(bars, symbol="BTCUSDT", timeframe="1h")
+        strategy = OneShotShortEntryStrategy(size="1000", sl=Decimal("105"), tp=Decimal("95"))
+        engine = BacktestEngine(
+            initial_capital=5000,
+            config=BacktestConfig(protective_exit_policy="nearest_to_open"),
+        )
+
+        results = engine.run(strategy, feed)
+
+        assert results["total_trades"] == 2
+        assert len(results["open_positions"]) == 0
+        assert engine.trades[-1].side == OrderSide.BUY
+        assert engine.trades[-1].price == Decimal("95")
 
     def test_next_open_mode_blocks_entry_and_discretionary_exit_on_same_bar(self):
         feed = MemDataFeed(_bars(["100", "100", "100"]), symbol="BTCUSDT", timeframe="1h")

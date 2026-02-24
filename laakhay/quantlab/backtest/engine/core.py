@@ -117,7 +117,7 @@ class BacktestEngine:
         if self.slippage_bps >= self._BPS_SCALE:
             raise ValueError("slippage_bps must be < 10000")
 
-        self.oms = OrderManager()
+        self.oms = OrderManager(protective_exit_policy=str(self.config.protective_exit_policy))
         self.sizer = PositionSizer(self._get_capital)
 
     def _get_capital(self) -> Decimal:
@@ -153,7 +153,7 @@ class BacktestEngine:
         self._daily_realized_pnl = Decimal("0")
         self._pending_signals.clear()
         self._bar_diagnostics.clear()
-        self.oms = OrderManager()
+        self.oms = OrderManager(protective_exit_policy=str(self.config.protective_exit_policy))
         self.sizer = PositionSizer(self._get_capital)
 
         strategy.prepare(feed.symbol, feed.timeframe)
@@ -620,8 +620,24 @@ class BacktestEngine:
             if not sl_hit and not tp_hit:
                 return
             if sl_hit and tp_hit:
-                # Conservative tie-break for long exits.
-                if tp_price is None or (sl_price is not None and sl_price <= tp_price):
+                policy = str(self.config.protective_exit_policy)
+                open_price = Decimal(str(bar.open))
+                # Tie-break for long exits.
+                if policy == "optimistic":
+                    reason = "TAKE_PROFIT"
+                    exit_price = tp_price
+                elif policy == "nearest_to_open":
+                    if sl_price is None or tp_price is None:
+                        reason = "STOP_LOSS"
+                        exit_price = sl_price
+                    elif abs(sl_price - open_price) <= abs(tp_price - open_price):
+                        # Tie-break conservatively for long.
+                        reason = "STOP_LOSS"
+                        exit_price = sl_price
+                    else:
+                        reason = "TAKE_PROFIT"
+                        exit_price = tp_price
+                elif tp_price is None or (sl_price is not None and sl_price <= tp_price):
                     reason = "STOP_LOSS"
                     exit_price = sl_price
                 else:
@@ -640,13 +656,31 @@ class BacktestEngine:
             if not sl_hit and not tp_hit:
                 return
             if sl_hit and tp_hit:
-                # Conservative tie-break for short exits.
-                if sl_price is None or (tp_price is not None and sl_price < tp_price):
+                policy = str(self.config.protective_exit_policy)
+                open_price = Decimal(str(bar.open))
+                # Tie-break for short exits.
+                if policy == "optimistic" and (
+                    sl_price is None or (tp_price is not None and tp_price <= sl_price)
+                ):
                     reason = "TAKE_PROFIT"
                     exit_price = tp_price
-                else:
+                elif policy == "nearest_to_open":
+                    if sl_price is None or tp_price is None:
+                        reason = "STOP_LOSS"
+                        exit_price = sl_price
+                    elif abs(sl_price - open_price) <= abs(tp_price - open_price):
+                        # Tie-break conservatively for short.
+                        reason = "STOP_LOSS"
+                        exit_price = sl_price
+                    else:
+                        reason = "TAKE_PROFIT"
+                        exit_price = tp_price
+                elif sl_price is not None and (tp_price is None or sl_price >= tp_price):
                     reason = "STOP_LOSS"
                     exit_price = sl_price
+                else:
+                    reason = "TAKE_PROFIT"
+                    exit_price = tp_price
             elif sl_hit:
                 reason = "STOP_LOSS"
                 exit_price = sl_price

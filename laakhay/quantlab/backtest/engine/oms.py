@@ -9,10 +9,11 @@ from ..models import Order, OrderSide, OrderType, Trade
 class OrderManager:
     """Manages active orders and matches them against market data."""
 
-    def __init__(self):
+    def __init__(self, *, protective_exit_policy: str = "conservative"):
         self.active_orders: list[Order] = []
         self.orders_history: list[Order] = []
         self.trades: list[Trade] = []
+        self.protective_exit_policy = protective_exit_policy
 
     def create_order(
         self,
@@ -92,19 +93,44 @@ class OrderManager:
                 triggered.append((order, fill_price))
 
         # If multiple exit orders trigger inside the same bar (e.g., SL and TP),
-        # use a conservative single fill to avoid unrealistic double execution.
+        # resolve using configured policy to avoid unrealistic double execution.
         filled: list[tuple[Order, Decimal]] = []
         if triggered:
             if len(triggered) == 1:
                 filled = triggered
             else:
+                open_price = Decimal(str(bar.open))
                 sell_triggers = [item for item in triggered if item[0].side == OrderSide.SELL]
                 if sell_triggers:
-                    # Conservative for long exits: assume the lowest executable exit price.
-                    filled = [min(sell_triggers, key=lambda item: item[1])]
+                    if self.protective_exit_policy == "optimistic":
+                        # Best-case for long exits.
+                        filled = [max(sell_triggers, key=lambda item: item[1])]
+                    elif self.protective_exit_policy == "nearest_to_open":
+                        # Choose the exit level closest to open; tie-break conservatively.
+                        filled = [
+                            min(
+                                sell_triggers,
+                                key=lambda item: (abs(item[1] - open_price), item[1]),
+                            )
+                        ]
+                    else:
+                        # Conservative for long exits.
+                        filled = [min(sell_triggers, key=lambda item: item[1])]
                 else:
-                    # Conservative for short exits: assume the highest executable exit price.
-                    filled = [max(triggered, key=lambda item: item[1])]
+                    if self.protective_exit_policy == "optimistic":
+                        # Best-case for short exits.
+                        filled = [min(triggered, key=lambda item: item[1])]
+                    elif self.protective_exit_policy == "nearest_to_open":
+                        # Choose the exit level closest to open; tie-break conservatively.
+                        filled = [
+                            min(
+                                triggered,
+                                key=lambda item: (abs(item[1] - open_price), -item[1]),
+                            )
+                        ]
+                    else:
+                        # Conservative for short exits.
+                        filled = [max(triggered, key=lambda item: item[1])]
 
         # Remove filled from active
         for order, _ in filled:
