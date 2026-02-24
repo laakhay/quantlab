@@ -1,12 +1,19 @@
+from .api import BatchBacktestRunner
 from .config import (
     BacktestConfig,
     BreakevenControl,
     FrequencyControl,
+    LeverageControl,
+    MarginMode,
+    PortfolioControl,
+    PortfolioMode,
     PositionMode,
+    ProtectiveExitPolicy,
+    RunMode,
     TradeDirectionMode,
 )
-from .engine import BacktestEngine
-from .feed import DataFeed, MemDataFeed
+from .execution import BacktestEngine, PortfolioBacktestEngine
+from .feed import DataFeed, MemDataFeed, MultiAssetMemFeed
 from .models import (
     Bar,
     Order,
@@ -25,6 +32,7 @@ __all__ = [
     "BacktestEngine",
     "DataFeed",
     "MemDataFeed",
+    "MultiAssetMemFeed",
     "Strategy",
     "Bar",
     "Order",
@@ -39,6 +47,14 @@ __all__ = [
     "BacktestConfig",
     "BreakevenControl",
     "FrequencyControl",
+    "LeverageControl",
+    "PortfolioControl",
+    "RunMode",
+    "PortfolioMode",
+    "MarginMode",
     "PositionMode",
+    "ProtectiveExitPolicy",
     "TradeDirectionMode",
+    "BatchBacktestRunner",
+    "PortfolioBacktestEngine",
 ]
